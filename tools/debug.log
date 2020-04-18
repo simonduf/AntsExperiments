@@ -1,0 +1,4 @@
+System.NullReferenceException: Object reference not set to an instance of an object.
+   at Ants.MyBot.explore(IGameState state, Int32[,] visibility, Ant ant) in G:\My Drive\Ants\Bot1\MyBot.cs:line 148
+   at Ants.MyBot.DoTurn(IGameState state) in G:\My Drive\Ants\Bot1\MyBot.cs:line 41
+   at Ants.Ants.PlayGame(Bot bot) in G:\My Drive\Ants\Bot1\Ants.cs:line 43
