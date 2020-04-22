@@ -2,46 +2,56 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using static Ants.Logger;
 
 namespace Ants {
 
 	class MyBot : Bot {
 
         int FoodRadius = 20;
+
+        int turn = 0;
 		public override void DoTurn (IGameState state) {
-
-            //FoodRadius = (int)Math.Sqrt(state.ViewRadius2);
-            
-
-            //Calculate Enemy proximity
-            var FoodProximity = calculateFoodProximity(state);
-            var visibility =  calculateVisibilityProximity(state);
-
-            foreach (Ant ant in state.MyAnts)
+            try
             {
-                // check if we have time left to calculate more orders
-                if (state.TimeRemaining < 10) break;
+                Log.Debug("Starting Turn " + turn++);// state.TimeRemaining
+                //FoodRadius = (int)Math.Sqrt(state.ViewRadius2);
+
+
+                //Calculate Enemy proximity
+                var FoodProximity = calculateFoodProximity(state);
+                var visibility = calculateVisibilityProximity(state);
+
+                foreach (Ant ant in state.MyAnts)
+                {
+                    // check if we have time left to calculate more orders
+                    if (state.TimeRemaining < 10) break;
 
 
 
-                // General game signals
-                // Defend hill -> converge + sacrifice self
-                //continue if move done
+                    // General game signals
+                    // Defend hill -> converge + sacrifice self
+                    //continue if move done
 
-                //Self ant todo:
-                // (enemy>Ally) ? flee() :attack
-                //continue if move done
-
-
-                if (getFood(state, FoodProximity, ant))
-                    continue;
+                    //Self ant todo:
+                    // (enemy>Ally) ? flee() :attack
+                    //continue if move done
 
 
-                explore(state, visibility, ant );
+                    if (getFood(state, FoodProximity, ant))
+                        continue;
 
-				
 
-			}
+                    explore(state, visibility, ant);
+
+
+
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Debug(e.ToString());
+            }
 			
 		}
 
@@ -63,6 +73,7 @@ namespace Ants {
 
         private int[,] calculateVisibilityProximity(IGameState state)
         {
+            state.CalculateVisibility();
             List<Location> notVisible = new List<Location>();
             for (int col = 0; col < state.Width; col++)
             {

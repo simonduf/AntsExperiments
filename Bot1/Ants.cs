@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Collections.Generic;
+using static Ants.Logger;
 
 namespace Ants {
 
@@ -27,7 +28,9 @@ namespace Ants {
 
 		public void PlayGame(Bot bot) {
 
-			List<string> input = new List<string>();
+            Log.Debug("Starting Up");
+
+            List<string> input = new List<string>();
 			
 			try {
 				while (true) {

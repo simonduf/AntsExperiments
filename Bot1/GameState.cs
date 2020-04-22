@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using static Ants.Logger;
 
 namespace Ants {
 
@@ -41,6 +42,7 @@ namespace Ants {
         public Tile[,] AllTiles { get { return map; } }
 
         private Tile[,] map;
+        public bool[,] visibility;
 
         public GameState(int width, int height,
                           int turntime, int loadtime,
@@ -69,6 +71,8 @@ namespace Ants {
                     map[row, col] = Tile.Land;
                 }
             }
+
+            visibility = new bool[height, width];
         }
 
         #region State mutators
@@ -185,6 +189,17 @@ namespace Ants {
             return new Location(row, col);
         }
 
+
+        void warpAround(ref int row, ref int col)
+        {
+            row = (row) % Height;
+            if (row < 0) row += Height; // because the modulo of a negative number is negative
+
+            col = (col) % Width;
+            if (col < 0) col += Width;
+        }
+
+
         /// <summary>
         /// Gets the distance between <paramref name="loc1"/> and <paramref name="loc2"/>.
         /// </summary>
@@ -266,23 +281,46 @@ namespace Ants {
             }
         }
 
+        
+        public void CalculateVisibility()
+        {
+            for (int i = 0; i < visibility.GetLength(0); i++)
+            {
+                for (int j = 0; j < visibility.GetLength(1); j++)
+                {
+                    visibility [i, j] = false;
+                }
+            }
+
+            foreach (Ant ant in this.MyAnts)
+            {
+                foreach (Location offset in Offsets)
+                {
+                    int col = ant.Col + offset.Col;
+                    int row =ant.Row + offset.Row;
+
+                    warpAround(ref row, ref col);
+
+                    visibility[row,col ] = true;
+                }
+            }
+
+        }
 
         public bool GetIsVisible(Location loc)
 		{
+            //try
+            //{
+                
+                return visibility[loc.Row, loc.Col];
+            //}
+            //catch (Exception e)
+            //{
+            //    Log.Debug("GetIsVisible(" + loc.Row + " , " + loc.Col + ") " + visibility.GetLength(0) + "," + visibility.GetLength(1));
+            //    throw;
+            //}
 
-			foreach (Ant ant in this.MyAnts)
-			{
-				foreach (Location offset in Offsets)
-				{
-					if ((ant.Col + offset.Col) == loc.Col &&
-						(ant.Row + offset.Row) == loc.Row)
-					{
-								 return true;
-					}
-				}
-			}
-			return false;
-		}
+        }
 
 	}
 }
