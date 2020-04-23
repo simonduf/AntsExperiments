@@ -76,6 +76,7 @@
     <Compile Include="IGameState.cs" />
     <Compile Include="Location.cs" />
     <Compile Include="MyBot.cs" />
+    <Compile Include="PersistentGameState.cs" />
     <Compile Include="Tile.cs" />
     <Compile Include="Vector2.cs" />
     <Compile Include="Vector2i.cs" />

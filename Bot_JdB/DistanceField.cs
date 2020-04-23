@@ -29,14 +29,20 @@ namespace Ants
         private int height;
         private Vector2i dims;
         private StateTile type;
+        private PersistentGameState gameState;
+        private bool terrain;
 
 
-        public DistanceField(int width, int height, StateTile type)
+        public DistanceField(PersistentGameState gameState, StateTile type, bool terrain = false)
         {
-            this.width = width;
-            this.height = height;
+            width = gameState.dimensions.x;
+            height = gameState.dimensions.y;
+            dims = gameState.dimensions;
+
             this.type = type;
-            this.dims = new Vector2i(width, height);
+            this.terrain = terrain;
+            this.gameState = gameState;
+
             map = new Tile[width, height];
             scratch = new Tile[width, height];
 
@@ -52,31 +58,30 @@ namespace Ants
         }
 
 
-        public void UpdateLand(StateTile[,] stateTiles)
+        public void UpdateLand()
         {
-            if (stateTiles.Length != map.Length)
-                throw new Exception("Maps do not match");
-
-            
-            foreach(var coord in coords)
-                map[coord.x, coord.y].isLand = (stateTiles[coord.y, coord.x] != StateTile.Water);
+            foreach (var coord in coords)
+            {
+                map[coord.x, coord.y].isLand = (gameState.map[coord.x, coord.y].terrain != StateTile.Water);
+            }
         }
 
-        public void UpdateLocked(StateTile[,] stateTiles)
+        public void UpdateLocked()
         {
-            if (stateTiles.Length != map.Length)
-                throw new Exception("Maps do not match");
-
+            
             foreach (var coord in coords)
             {
                 int x = coord.x;
                 int y = coord.y;
-                bool locked = (stateTiles[coord.y, coord.x] == type);
 
-                map[coord.x, coord.y].isLocked = locked;
+                bool locked = terrain ?
+                               gameState.map[x, y].terrain == type :
+                               gameState.map[x, y].objects == type;
+
+                map[x, y].isLocked = locked;
 
                 if(locked)
-                    map[coord.x, coord.y].distance = 0;
+                    map[x, y].distance = 0;
             }
         }
 
@@ -115,10 +120,10 @@ namespace Ants
             scratch = tmp;
         }
 
-        public void Propagate(StateTile[,] stateTiles, int count)
+        public void Propagate(int count)
         {
-            UpdateLand(stateTiles);
-            UpdateLocked(stateTiles);
+            UpdateLand();
+            UpdateLocked();
             for (int i = 0; i < count; i++)
                 PropagateOnce();
         }

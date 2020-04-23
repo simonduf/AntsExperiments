@@ -10,9 +10,12 @@ namespace Ants {
 	class MyBot : Bot {
 
 
+        private PersistentGameState pState;
 
         private DistanceField exploration = null;
         private DistanceField food = null;
+
+
 
 
         int FoodRadius = 20;
@@ -20,17 +23,22 @@ namespace Ants {
         int turn = 0;
 		public override void DoTurn (IGameState state) {
 
+            if (pState == null)
+                pState = new PersistentGameState(state.Width, state.Height);
+
+            pState.Update(state.AllTiles);
+
             if (exploration == null)
-                exploration = new DistanceField(state.Width, state.Height, Tile.Unseen);
+                exploration = new DistanceField(pState, Tile.Unseen, terrain:true);
 
             if (food == null)
-                food = new DistanceField(state.Width, state.Height, Tile.Food);
+                food = new DistanceField(pState, Tile.Food);
 
 
             try
             {
-                exploration.Propagate(state.AllTiles, 5);
-                food.Propagate(state.AllTiles, 5);
+                exploration.Propagate(5);
+                food.Propagate(5);
 
 
 
@@ -88,7 +96,7 @@ namespace Ants {
                     */
 
                     //IssueOrder(ant, Direction.South);
-                    IssueOrder(ant, GetDirection(food.GetDescent(x,y).FirstOrDefault()));
+                    IssueOrder(ant, GetDirection(exploration.GetDescent(x,y).FirstOrDefault()));
 
 
                 }
