@@ -40,16 +40,20 @@ namespace Ants
                 map[coord.x, coord.y] = defaultTile;
 
         }
-        
 
 
+
+        private Location location = new Location(0, 0);
         public void Update(StateTile[,] state)
         {
-            foreach(var coord in coords)
+            
+            
+            foreach (var coord in coords)
             {
                 Tile tile = map[coord.x, coord.y];
                 StateTile s = state[coord.y, coord.x];
 
+                
                 //
                 //  Update unknown terrain. Either it's water or land. If there's
                 //  a special object, then it is also land.
@@ -63,6 +67,27 @@ namespace Ants
             }
         }
 
+
+        public String ToString(int x, int y, int width, int height)
+        {
+            StringBuilder builder = new StringBuilder("Persistent Game State: \n");
+            for (int j = y; j < y + height; j++)
+            {
+                for (int i = x; i < x + width; i++)
+                {
+                    var tile = map[i, j];
+                    builder.Append((int)tile.terrain + "\t");
+                }
+                builder.Append("\n");
+            }
+
+            return builder.ToString();
+        }
+
+        public override String ToString()
+        {
+            return ToString(0, 0, dimensions.x, dimensions.y);
+        }
 
     }
 }

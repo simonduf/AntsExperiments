@@ -400,13 +400,13 @@ namespace Bot1_Tests
             });
             dut.Propagate(20);
             {
-                Assert.AreEqual(0, dut.GetDistance(3, 0));
-                Assert.AreEqual(1, dut.GetDistance(3, 1));
-                Assert.AreEqual(2, dut.GetDistance(3, 2));
-                Assert.AreEqual(3, dut.GetDistance(3, 3));
+                Assert.AreEqual(0, dut.GetDistance(3, 1));
+                Assert.AreEqual(1, dut.GetDistance(3, 2));
+                Assert.AreEqual(2, dut.GetDistance(3, 3));
                 Assert.AreEqual(2, dut.GetDistance(3, 4));
                 Assert.AreEqual(1, dut.GetDistance(3, 5));
                 Assert.AreEqual(0, dut.GetDistance(3, 6));
+                
 
                 Vector2i r = dut.GetDescent(3, 2).First();
                 Assert.AreEqual(0, r.x);
@@ -528,27 +528,69 @@ namespace Bot1_Tests
             const Tile f = Tile.Food;
             const Tile _ = Tile.Land;
             const Tile w = Tile.Water;
+            const Tile u = Tile.Unseen;
 
             Tile[,] map = new Tile[,]
             {
-                {w,w,w,w,w,_,_},
-                {_,_,f,_,w,_,_},
-                {_,_,_,_,w,_,_},
-                {_,_,_,_,w,_,_},
-                {_,_,_,_,w,_,_},
-                {_,_,_,_,w,w,_},
-                {_,_,_,_,_,w,_},
-                {_,_,_,_,_,w,_},
-                {_,_,_,_,_,w,_},
-                {_,_,_,_,_,w,w},
+                {_,_,_,u,_,_,w},
+                {_,f,_,u,_,_,w},
+                {_,_,_,w,_,_,w},
+                {_,_,_,w,_,_,w},
+                {_,_,_,w,_,_,w},
+                {_,_,_,w,w,_,w},
+                {_,_,_,_,w,f,w},
+                {_,_,_,w,w,_,w},
+                {_,_,_,_,w,_,w},
+                {w,w,w,w,w,w,w},
             };
 
             gameState.Update(map);
             dut.Propagate(20);
 
             {
-                Vector2i r = dut.GetDescent(4, 6).First();
+                Vector2i r = dut.GetDescent(3, 6).First();
                 Assert.AreEqual(-1, r.x);
+                Assert.AreEqual(0, r.y);
+            }
+        }
+
+        [TestMethod]
+        public void ProblemCase2()
+        {
+            PersistentGameState gameState = new PersistentGameState(7, 10);
+            DistanceField dut = new DistanceField(gameState, Tile.Food);
+
+            const Tile f = Tile.Food;
+            const Tile _ = Tile.Land;
+            const Tile w = Tile.Water;
+            const Tile u = Tile.Unseen;
+
+            Tile[,] map = new Tile[,]
+            {
+                {_,w,w,_,_,_,w},
+                {_,w,w,f,_,_,w},
+                {_,w,w,_,_,_,w},
+                {w,w,w,_,_,_,w},
+                {w,w,w,_,_,_,w},
+                {_,_,_,_,_,_,w},
+                {_,_,_,_,_,_,w},
+                {_,_,_,_,_,_,w},
+                {_,_,_,_,_,_,w},
+                {w,w,w,w,w,w,w},
+            };
+
+            gameState.Update(map);
+            dut.Propagate(20);
+
+            {
+                Vector2i r = dut.GetDescent(2, 5).First();
+                Assert.AreEqual(1, r.x);
+                Assert.AreEqual(0, r.y);
+            }
+
+            {
+                Vector2i r = dut.GetDescent(1, 5).First();
+                Assert.AreEqual(1, r.x);
                 Assert.AreEqual(0, r.y);
             }
         }

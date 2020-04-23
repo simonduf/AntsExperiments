@@ -47,14 +47,41 @@ namespace Ants
             scratch = new Tile[width, height];
 
             coords = new Vector2i[width * height];
-            for(int i = 0; i < width; i++)
+            for(int j = 0; j < height; j++)
             {
-                for(int j = 0; j < height; j++)
+                for(int i = 0; i < width; i++)
                 {
                     coords[i + j * width] = new Vector2i(i, j);
                 }
             }
 
+        }
+
+
+        public String ToString(int x, int y, int width, int height)
+        {
+            StringBuilder builder = new StringBuilder("Distance Field: \n");
+            for (int j = y; j < y+height; j++)
+            {
+                for (int i = x; i < x+width; i++)
+                {
+                    var tile = map[i, j];
+                    if(tile.isLocked)
+                        builder.Append("X\t");
+                    else if(!tile.isLand)
+                        builder.Append("--\t");
+                    else
+                        builder.Append(map[i, j].distance + "\t");
+                }
+                builder.Append("\n");
+            }
+
+            return builder.ToString();
+        }
+
+        public override String ToString()
+        {
+            return ToString(0,0,width,height);
         }
 
 

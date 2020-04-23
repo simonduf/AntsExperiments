@@ -4,17 +4,17 @@ namespace Ants {
 
 	public interface IGameState {
 
-        Tile[,] AllTiles { get; }
-
-        /// <summary>
-        /// Gets the width of the map.
-        /// </summary>
-        int Width { get; }
+		/// <summary>
+		/// Gets the width of the map.
+		/// </summary>
+		int Width { get; }
 
 		/// <summary>
 		/// Gets the height of the map.
 		/// </summary>
 		int Height { get; }
+
+		Tile[,] AllTiles { get; }
 
 		/// <summary>
 		/// Gets the allowed load time in milliseconds.
@@ -124,12 +124,7 @@ namespace Ants {
 		/// <param name="loc2">The location to determine directions towards.</param>
 		/// <returns>The 1 or 2 closest directions from <paramref name="loc1"/> to <paramref name="loc2"/></returns>
 		ICollection<Direction> GetDirections (Location loc1, Location loc2);
-
-		Vector2 GetFromTo(Location from, Location to);
-
-
+		
 		bool GetIsVisible(Location loc);
-        void CalculateVisibility();
-
-    }
+	}
 }
