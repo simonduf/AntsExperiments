@@ -43,6 +43,7 @@ namespace Ants {
 
         private Tile[,] map;
         public bool[,] visibility;
+        public bool[,] OccupiedNextRound;
 
         public GameState(int width, int height,
                           int turntime, int loadtime,
@@ -73,6 +74,7 @@ namespace Ants {
             }
 
             visibility = new bool[height, width];
+            OccupiedNextRound = new bool[height, width];
         }
 
         #region State mutators
@@ -96,6 +98,7 @@ namespace Ants {
             // set all known food to unseen
             foreach (Location loc in FoodTiles) map[loc.Row, loc.Col] = Tile.Land;
             FoodTiles.Clear();
+            OccupiedNextRound.Init(false);
         }
 
         public void AddAnt(int row, int col, int team) {
@@ -104,6 +107,7 @@ namespace Ants {
             Ant ant = new Ant(row, col, team);
             if (team == 0) {
                 MyAnts.Add(ant);
+                OccupiedNextRound.Set(ant, true);
             } else {
                 EnemyAnts.Add(ant);
             }
@@ -281,47 +285,84 @@ namespace Ants {
             }
         }
 
-        
+
         public void CalculateVisibility()
         {
-            for (int i = 0; i < visibility.GetLength(0); i++)
-            {
-                for (int j = 0; j < visibility.GetLength(1); j++)
-                {
-                    visibility [i, j] = false;
-                }
-            }
+            visibility.Init(false);
+
 
             foreach (Ant ant in this.MyAnts)
             {
                 foreach (Location offset in Offsets)
                 {
                     int col = ant.Col + offset.Col;
-                    int row =ant.Row + offset.Row;
+                    int row = ant.Row + offset.Row;
 
                     warpAround(ref row, ref col);
 
-                    visibility[row,col ] = true;
+                    visibility[row, col] = true;
                 }
             }
 
         }
 
         public bool GetIsVisible(Location loc)
-		{
-            //try
-            //{
-                
-                return visibility[loc.Row, loc.Col];
-            //}
-            //catch (Exception e)
-            //{
-            //    Log.Debug("GetIsVisible(" + loc.Row + " , " + loc.Col + ") " + visibility.GetLength(0) + "," + visibility.GetLength(1));
-            //    throw;
-            //}
+        {
+
+            return visibility.At(loc);
+
 
         }
 
-	}
+    }
+
+    public static class StateHelper
+    {
+        public static T At<T>(this T[,] map, Location loc)
+        {
+            try
+            {
+                return map[loc.Row, loc.Col];
+            }
+            catch (Exception e)
+            {
+                Log.Debug("At(" + loc.Row + " , " + loc.Col + ") " + map.GetLength(0) + "," + map.GetLength(1));
+                throw;
+            }
+        }
+
+        public static T Set<T>(this T[,] map, Location loc, T value)
+        {
+            try
+            {
+                return map[loc.Row, loc.Col] = value;
+            }
+            catch (Exception e)
+            {
+                string msg = "Set(" + loc.Row + " , " + loc.Col + ") " + map.GetLength(0) + "," + map.GetLength(1);
+                Log.Debug(msg);
+                
+                throw new Exception(msg,e);
+            }
+        }
+
+
+
+
+        public static void Init<T>(this T[,] array, T val)
+        {
+            for (int i = 0; i < array.GetLength(0); i++)
+            {
+                for (int j = 0; j < array.GetLength(1); j++)
+                {
+                    array[i, j] = val;
+                }
+            }
+        }
+
+    }
+
+
+
 }
 
