@@ -8,7 +8,7 @@ namespace Ants
 {
     public class DistanceField
     {
-
+        public const int Max = int.MaxValue-5;
         private struct Tile
         {
             public int distance;
@@ -20,7 +20,8 @@ namespace Ants
         private static readonly Vector2i DOWN = new Vector2i(0, 1);
         private static readonly Vector2i LEFT = new Vector2i(-1, 0);
         private static readonly Vector2i RIGHT = new Vector2i(1, 0);
-        private static readonly Vector2i[] ALL_DIRECTIONS = new Vector2i[] { UP, DOWN, LEFT, RIGHT };
+        private static readonly Vector2i ZERO = new Vector2i(0, 0);
+        private static readonly Vector2i[] ALL_DIRECTIONS = new Vector2i[] { UP, DOWN, LEFT, RIGHT, ZERO};
 
         private Vector2i[] coords;
         private Tile[,] map;
@@ -28,55 +29,96 @@ namespace Ants
         private int width;
         private int height;
         private Vector2i dims;
-        private StateTile type;
+        
+        private GameState gameState;
+        System.Func<GameState.Tile, bool> marker;
 
 
-        public DistanceField(int width, int height, StateTile type)
+        public DistanceField(GameState gameState, System.Func<GameState.Tile, bool> marker)
         {
-            this.width = width;
-            this.height = height;
-            this.type = type;
-            this.dims = new Vector2i(width, height);
+            width = gameState.Width;
+            height = gameState.Height;
+            dims = new Vector2i(width, height);
+
+            this.marker = marker;
+            this.gameState = gameState;
+
             map = new Tile[width, height];
             scratch = new Tile[width, height];
 
             coords = new Vector2i[width * height];
-            for(int i = 0; i < width; i++)
+            for(int j = 0; j < height; j++)
             {
-                for(int j = 0; j < height; j++)
+                for(int i = 0; i < width; i++)
                 {
                     coords[i + j * width] = new Vector2i(i, j);
+                    map[i, j].distance = Max;
                 }
             }
 
         }
 
 
-        public void UpdateLand(StateTile[,] stateTiles)
+        public String ToString(int x, int y, int width, int height)
         {
-            if (stateTiles.Length != map.Length)
-                throw new Exception("Maps do not match");
+            StringBuilder builder = new StringBuilder("Distance Field: \n");
+            for (int j = y; j < y+height; j++)
+            {
+                for (int i = x; i < x+width; i++)
+                {
+                    var tile = map[i, j];
+                    if(tile.isLocked)
+                        builder.Append("X\t");
+                    else if(!tile.isLand)
+                        builder.Append("--\t");
+                    else
+                        builder.Append(map[i, j].distance + "\t");
+                }
+                builder.Append("\n");
+            }
 
-            
-            foreach(var coord in coords)
-                map[coord.x, coord.y].isLand = (stateTiles[coord.y, coord.x] != StateTile.Water);
+            return builder.ToString();
         }
 
-        public void UpdateLocked(StateTile[,] stateTiles)
+        public override String ToString()
         {
-            if (stateTiles.Length != map.Length)
-                throw new Exception("Maps do not match");
+            return ToString(0,0,width,height);
+        }
+
+
+        public void UpdateLand()
+        {
+            foreach (var coord in coords)
+            {
+                map[coord.x, coord.y].isLand = gameState.map[coord.x, coord.y].terrain != GameState.Terrain.Water;
+            }
+        }
+
+        public void UpdateLocked()
+        {
+            int count = 0;
 
             foreach (var coord in coords)
             {
                 int x = coord.x;
                 int y = coord.y;
-                bool locked = (stateTiles[coord.y, coord.x] == type);
 
-                map[coord.x, coord.y].isLocked = locked;
+                bool locked = marker(gameState.map[coord.x, coord.y]);
 
-                if(locked)
-                    map[coord.x, coord.y].distance = 0;
+                map[x, y].isLocked = locked;
+
+                if (locked)
+                {
+                    map[x, y].distance = 0;
+                    count++;
+                }
+
+            }
+
+            if(count == 0)
+            {
+                foreach (var coord in coords)
+                    map[coord.x, coord.y].distance = Max;
             }
         }
 
@@ -98,7 +140,7 @@ namespace Ants
                                 .Select(t => t.distance)
                                 .Min();
 
-                    scratch[coord.x, coord.y].distance = min + 1;
+                    scratch[coord.x, coord.y].distance = Math.Min(min + 1, Max);
                 }
 
                 
@@ -115,10 +157,10 @@ namespace Ants
             scratch = tmp;
         }
 
-        public void Propagate(StateTile[,] stateTiles, int count)
+        public void Propagate(int count)
         {
-            UpdateLand(stateTiles);
-            UpdateLocked(stateTiles);
+            UpdateLand();
+            UpdateLocked();
             for (int i = 0; i < count; i++)
                 PropagateOnce();
         }
@@ -126,11 +168,7 @@ namespace Ants
 
         public Vector2i Wrap(Vector2i v)
         {
-            while (v.x < 0) v.x += width;
-            while (v.x >= width) v.x -= width;
-            while (v.y < 0) v.y += height;
-            while (v.y >= height) v.y -= height;
-            return v;
+            return Vector2i.Wrap(v, width, height);
         }
 
 
