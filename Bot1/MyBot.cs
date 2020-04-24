@@ -19,14 +19,16 @@ namespace Ants {
                 //FoodRadius = (int)Math.Sqrt(state.ViewRadius2);
 
 
-                //Calculate Enemy proximity
+                //Calculate proximity
                 var FoodProximity = calculateFoodProximity(state);
                 var visibility = calculateVisibilityProximity(state);
 
-                var antToMove = new List<Ant>(state.MyAnts);
 
                 var antMoved = new List<Ant>();
                 var ennemyConsidered = new List<Ant>();
+
+
+                //Attack/defend
                 foreach (Ant enemy in state.EnemyAnts)
                 {
                     if (ennemyConsidered.Contains(enemy))
@@ -35,7 +37,7 @@ namespace Ants {
                     if (Math.Sqrt(state.ViewRadius2) - visibility.At(enemy) < BattleRadius)
                     {
                         var battle = new Battle();
-                        battle.StartBattle(state, enemy, state.MyAnts.OrderBy(a => state.GetDistance(enemy, a)).First());
+                        battle.StartBattle(state, state.MyAnts.OrderBy(a => state.GetDistance(enemy, a)).First(), enemy);
 
                         ennemyConsidered.AddRange(battle.EnemyPlatoon);
                         antMoved.AddRange(battle.AllyPlatoon);
@@ -43,6 +45,28 @@ namespace Ants {
                     }
                 }
 
+                var antToMove = state.MyAnts.Except(antMoved).ToList();
+
+
+
+                //Food.getAnt
+                foreach (var food in state.FoodTiles)
+                {
+                    var result = FindClosest(state, food, x => antToMove.Select(ant => (x.Row == ant.Row && x.Col == ant.Col) ? ant:null).Where( y => y!=null).FirstOrDefault(), out Direction dir);
+                    if (result != null)
+                    {
+                        dir = dir.Opposite();
+                        Location newLoc = state.GetDestination(result, dir);
+                        if(!state.OccupiedNextRound.At(newLoc))
+                            IssueOrder(state, result, dir);
+                        antMoved.Add(result);
+                        antToMove.Remove(result);
+                    }
+
+                }
+
+
+                antToMove = state.MyAnts.Except(antMoved).ToList();
                 foreach (Ant ant in antToMove)
                 {
                     // check if we have time left to calculate more orders
@@ -55,8 +79,8 @@ namespace Ants {
                     //continue if move done
 
 
-                    if (getFood(state, FoodProximity, ant))
-                        continue;
+                    //if (getFood(state, FoodProximity, ant)) //Replace par food.getAnt() above
+                    //    continue;
 
 
                     explore(state, visibility, ant);
@@ -69,8 +93,10 @@ namespace Ants {
             {
                 Log.Debug(e.ToString());
             }
-			
-		}
+
+            //For debugging
+            //while (state.TimeRemaining > 10) continue;
+        }
 
 
 
@@ -100,7 +126,7 @@ namespace Ants {
         {
             //TODO do not create a new array each frame...
 
-            var map = new int[state.Width, state.Height];
+            var map = state.NewMap<int>();
             map.Init(50);
 
             var queue = new Queue<Tuple<Location, int>>(startItems.Select(i => new Tuple<Location, int>(i, 0)).ToList());
@@ -110,9 +136,9 @@ namespace Ants {
             {
                 var item = queue.Dequeue();
 
-                if (map[item.Item1.Col, item.Item1.Row] > item.Item2)
+                if (map.At(item.Item1) > item.Item2)
                 {
-                    map[item.Item1.Col, item.Item1.Row] = item.Item2;
+                    map.Set(item.Item1, item.Item2);
 
                     foreach (Direction direction in Ants.Aim.Keys)
                     {
@@ -129,6 +155,50 @@ namespace Ants {
             return map;
         }
 
+
+        public static T FindClosest<T>(GameState state, Location startingPoint,  Func<Location,T> test, out Direction dir, int MaxDistance = 10) where T : class
+        {
+           
+            Dictionary<Location, int> distance = new Dictionary<Location, int>();
+
+            var queue = new Queue<Location>();
+
+            distance[startingPoint] = 0;
+            queue.Enqueue(startingPoint);
+
+
+            while (queue.Count > 0)
+            {
+                var item = queue.Dequeue();
+
+                foreach (Direction direction in Ants.Aim.Keys)
+                {
+                    Location newLoc = state.GetDestination(item, direction);
+                    if (distance.ContainsKey(newLoc))
+                        continue;//Already tested
+
+                    if (!state.GetIsPassable(newLoc))
+                        continue;//Cant go there
+
+                    T result = test(newLoc);
+                    if (result != null)
+                    {
+                        dir = direction;
+                        return result;
+                    }
+
+                    distance[newLoc] =  distance[item] + 1;
+                    queue.Enqueue(newLoc);
+                    
+                }
+                
+
+            }
+
+            dir = Direction.East;
+            return null;
+        }
+
         private int[,] calculateFoodProximity(IGameState state)
         {
             return CalculateProximity(state, state.FoodTiles);
@@ -136,16 +206,16 @@ namespace Ants {
 
         private bool getFood(GameState state, int[,] FoodProximity,  Ant ant)
         {
-            if (FoodProximity[ant.Col, ant.Row] < FoodRadius)
+            if (FoodProximity.At(ant) < FoodRadius)
             {
                 int value = 999;
                 Direction dir = Direction.North;
                 foreach (Direction direction in Ants.Aim.Keys)
                 {
                     Location newLoc = state.GetDestination(ant, direction);
-                    if (state.GetIsPassable(newLoc) && !state.OccupiedNextRound.At(newLoc) && value > FoodProximity[newLoc.Col, newLoc.Row])
+                    if (state.GetIsPassable(newLoc) && !state.OccupiedNextRound.At(newLoc) && value > FoodProximity.At(newLoc))
                     {
-                        value = FoodProximity[newLoc.Col, newLoc.Row];
+                        value = FoodProximity.At(newLoc);
                         dir = direction;
                     }
 
@@ -165,21 +235,21 @@ namespace Ants {
             // TODO if two direction are in the way of the "unknown", select the one with the most spread with the other ants
             {
 
-                int value = visibility[ant.Col, ant.Row];
-                if (value < 40)
+                int value = visibility.At(ant);
+                if (value < 50)
                 {
                     Direction dir = Direction.North;
                     foreach (Direction direction in Ants.Aim.Keys)
                     {
                         Location newLoc = state.GetDestination(ant, direction);
-                        if (state.GetIsPassable(newLoc) && !state.OccupiedNextRound.At(newLoc) && value > visibility[newLoc.Col, newLoc.Row])
+                        if (state.GetIsPassable(newLoc) && !state.OccupiedNextRound.At(newLoc) && value > visibility.At(newLoc))
                         {
-                            value = visibility[newLoc.Col, newLoc.Row];
+                            value = visibility.At(newLoc);
                             dir = direction;
                         }
 
                     }
-                    if (value != visibility[ant.Col, ant.Row])
+                    if (value != visibility.At(ant))
                     {
                         IssueOrder(state, ant, dir);
                         return true;
@@ -190,21 +260,21 @@ namespace Ants {
 
             //try distanciate other ants
             var AllyProximity = calculateAllyProximity(state, ant);
-            if (AllyProximity[ant.Col, ant.Row] < 20)
+            if (AllyProximity.At(ant) < 20)
             {
-                int value = AllyProximity[ant.Col, ant.Row];
+                int value = AllyProximity.At(ant);
                 Direction dir = Direction.North;
                 foreach (Direction direction in Ants.Aim.Keys)
                 {
                     Location newLoc = state.GetDestination(ant, direction);
-                    if (state.GetIsPassable(newLoc) && !state.OccupiedNextRound.At(newLoc) && value < AllyProximity[newLoc.Col, newLoc.Row])
+                    if (state.GetIsPassable(newLoc) && !state.OccupiedNextRound.At(newLoc) && value < AllyProximity.At(newLoc))
                     {
-                        value = AllyProximity[newLoc.Col, newLoc.Row];
+                        value = AllyProximity.At(newLoc);
                         dir = direction;
                     }
 
                 }
-                if (value != AllyProximity[ant.Col, ant.Row])
+                if (value != AllyProximity.At(ant))
                 {
                     IssueOrder(state, ant, dir);
                     return true;
@@ -241,25 +311,45 @@ namespace Ants {
 
     public class Battle
     {
-        const int platoonRadius = 10;
+        const int platoonRadius = 4;
+        const int platoonMaxTotalRadius = 10;
         const int GuardDistance = 2;
 
         public List<Ant> AllyPlatoon = new List<Ant>();
         public List<Ant> EnemyPlatoon = new List<Ant>();
 
-        public void BuildPlatoon(IGameState state, List<Ant> platoonToFill, Ant startingAnt)
+        public static void BuildPlatoon(IGameState state, List<Ant> platoonToFill, Ant startingAnt)
         {
+            var antList = (startingAnt.Team == 0 ? state.MyAnts : state.EnemyAnts).Where(x => state.GetDistance(startingAnt, x) < platoonMaxTotalRadius).ToList(); ;
 
+            platoonToFill.Add(startingAnt);
+            var newAnts = new List<Ant>(platoonToFill);
+
+            //Coud be done using only an index for new Ants instead of another list
+            while(newAnts.Count>0)
+            {
+                antList = antList.Except(newAnts).ToList();
+
+                var current = newAnts.Last();
+                newAnts.RemoveAt(newAnts.Count - 1);
+                
+                var newFound = antList.Where(x => state.GetDistance(current, x) < platoonRadius).ToList();
+
+               
+                newAnts.AddRange(newFound);
+                platoonToFill.AddRange(newFound);
+            }
+            
         }
 
         //Return the distance to ennemy for each ant in the list
-        public List<int> BuildFrontline(IGameState state, List<Ant> platoon, List<Ant> Enemies, out int qty, out int distance)
+        public static List<int> BuildFrontline(IGameState state, List<Ant> platoon, List<Ant> Enemies, out int qty, out int distance)
         {
             var DistanceToFrontline = new List<int>(platoon.Count);
 
             for (int i = 0; i < platoon.Count; i++)
             {
-                DistanceToFrontline[i] = Enemies.Select(enemy => state.GetDistance(platoon[i], enemy)).Min();
+                DistanceToFrontline.Add( Enemies.Select(enemy => state.GetDistance(platoon[i], enemy)).Min());
             }
 
             var _distance = DistanceToFrontline.Min();
@@ -282,10 +372,10 @@ namespace Ants {
                 //Attack!
                 var AllyDist = BuildFrontline(state, AllyPlatoon, EnemyPlatoon, out int qty, out int distance);
 
-                var EnemyDist = BuildFrontline(state, AllyPlatoon, EnemyPlatoon, out int Eqty, out int Edistance);
+                var EnemyDist = BuildFrontline(state, EnemyPlatoon, AllyPlatoon, out int Eqty, out int Edistance);
 
 
-                if (Eqty > qty)
+                if (Eqty >= qty)
                 {
                     //We have more ants, but they are not on the front line!
                     //Regroup!
@@ -295,56 +385,147 @@ namespace Ants {
                     {
                         //At the end of the turn, we will be in position, no need to move back
 
-                        Regroup(state, AllyDist.ToArray(), distance);
+                        Regroup(state, AllyDist.ToArray(), distance, true);
 
                     }
                     else
                     {
                         //Maybe we should move back our units...
-                        //TODO backup frot row instead
-                        Regroup(state, AllyDist.ToArray(), distance);
+                        Regroup(state, AllyDist.ToArray(), distance, true);
+
                     }
 
 
                 }
-                //else we just stand there for now
+                else
+                {
+                    Attack(state);
+                }
             }
             else
             {
-                //retreat
-                //foreach (var ant in AllyPlatoon)
-                //{
-
-                //}
+                Retreat(state);
 
             }
 
 
         }
 
-        public void Regroup(GameState state, int[] distances, int fallbackDistance)
+        public void Retreat(GameState state)
         {
             var EnemyDist = MyBot.CalculateProximity(state, EnemyPlatoon);
             for (int i = 0; i < AllyPlatoon.Count; i++)
             {
+                Retreat(state, EnemyDist, AllyPlatoon[i] );
+            }
+        }
+
+        public void Retreat(GameState state, int[,] EnemyDist, Ant ant)
+        {
+
+            var best = Ants.Aim.Keys.Select(dir => new { dir, loc = state.GetDestination(ant, dir) } )
+                            .Where(x => !state.OccupiedNextRound.At(x.loc))
+                            .Where(x => state.GetIsPassable(x.loc))
+                            .OrderBy(x => EnemyDist.At(x.loc))
+                            .LastOrDefault();
+
+            if (best == null)
+                return;
+
+            if ( EnemyDist.At(best.loc) >= EnemyDist.At(ant))
+                Bot.IssueOrder(state, ant, best.dir);
+
+
+            //foreach (Direction direction in Ants.Aim.Keys)
+            //{
+            //    Location newLoc = state.GetDestination(ant, direction);
+            //   //Todo sort best result;
+            //    if (state.GetIsPassable(newLoc) && !state.OccupiedNextRound.At(newLoc) && EnemyDist.At(newLoc) > EnemyDist.At(ant))
+            //    {
+            //        Bot.IssueOrder(state, ant, direction);
+            //        break;
+            //    }
+            //}
+        }
+
+        public void Attack(GameState state, int[,] EnemyDist, Ant ant)
+        {
+
+            var best = Ants.Aim.Keys.Select(dir => new { dir, loc = state.GetDestination(ant, dir) })
+                            .Where(x => !state.OccupiedNextRound.At(x.loc))
+                            .Where(x => state.GetIsPassable(x.loc))
+                            .OrderByDescending(x => EnemyDist.At(x.loc))
+                            //.ThenBy(state.GetBestDirection(x.loc, loc) //Prioritize by direction, need to have a goal...
+                            .LastOrDefault();
+
+            if (best == null)
+                return;//TODO wals around obstacle here??
+
+            if (EnemyDist.At(best.loc) <= EnemyDist.At(ant))
+                Bot.IssueOrder(state, ant, best.dir);
+
+
+            //foreach (Direction direction in Ants.Aim.Keys)
+            //{
+            //    Location newLoc = state.GetDestination(ant, direction);
+            //   //Todo sort best result;
+            //    if (state.GetIsPassable(newLoc) && !state.OccupiedNextRound.At(newLoc) && EnemyDist.At(newLoc) > EnemyDist.At(ant))
+            //    {
+            //        Bot.IssueOrder(state, ant, direction);
+            //        break;
+            //    }
+            //}
+        }
+
+        public void Attack(GameState state)
+        {
+            var EnemyDist = MyBot.CalculateProximity(state, EnemyPlatoon);
+            for (int i = 0; i < AllyPlatoon.Count; i++)
+            {
+                Attack(state, EnemyDist, AllyPlatoon[i]);
+            }
+        }
+
+        public void Regroup(GameState state, int[] distances, int fallbackDistance, bool moveBack = false)
+        {
+            var EnemyDist = MyBot.CalculateProximity(state, EnemyPlatoon);
+
+
+            for (int i = 0; i < AllyPlatoon.Count; i++)
+            {
                 if (distances[i] <= fallbackDistance)// distance should be the min...
-                    continue;
-
-                foreach (Direction direction in Ants.Aim.Keys)
                 {
-                    Location newLoc = state.GetDestination(AllyPlatoon[i], direction);
-
-                    if (state.GetIsPassable(newLoc) && !state.OccupiedNextRound.At(newLoc) && EnemyDist.At(newLoc) < distances[i])
-                    {
-                        Bot.IssueOrder(state, AllyPlatoon[i], direction);
-                        continue;
-                    }
+                    if (moveBack)
+                        Retreat(state, EnemyDist, AllyPlatoon[i]);
+                    continue;
                 }
+
+                Attack(state, EnemyDist, AllyPlatoon[i]);
             }
         }
 
     }
 
+    public static class DictHelper
+    {
+        public static TValue GetValueOrDefault<TKey, TValue>
+        (this IDictionary<TKey, TValue> dictionary,
+         TKey key,
+         TValue defaultValue)
+        {
+            TValue value;
+            return dictionary.TryGetValue(key, out value) ? value : defaultValue;
+        }
 
-	
+        public static TValue GetValueOrDefault<TKey, TValue>
+            (this IDictionary<TKey, TValue> dictionary,
+             TKey key,
+             Func<TValue> defaultValueProvider)
+        {
+            TValue value;
+            return dictionary.TryGetValue(key, out value) ? value
+                 : defaultValueProvider();
+        }
+    }
+
 }

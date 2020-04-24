@@ -19,12 +19,8 @@ namespace Ants {
 			this.Row = row;
 			this.Col = col;
 		}
-        public Location(Location loc)
-        {
-            this.Row = loc.Row;
-            this.Col = loc.Col;
-        }
-        public override bool Equals (object obj) {
+
+		public override bool Equals (object obj) {
 			if (ReferenceEquals (null, obj))
 				return false;
 			if (ReferenceEquals (this, obj))
@@ -50,12 +46,7 @@ namespace Ants {
 				return (this.Row * 397) ^ this.Col;
 			}
 		}
-
-        public override string ToString()
-        {
-            return string.Format("[{0}:{1}]", Row, Col) ;
-        }
-    }
+	}
 
 	public class TeamLocation : Location, IEquatable<TeamLocation> {
 		/// <summary>
@@ -63,12 +54,7 @@ namespace Ants {
 		/// </summary>
 		public int Team { get; private set; }
 
-        public TeamLocation(Location loc, int team) : base(loc)
-        {
-            this.Team = team;
-        }
-
-        public TeamLocation (int row, int col, int team) : base (row, col) {
+		public TeamLocation (int row, int col, int team) : base (row, col) {
 			this.Team = team;
 		}
 
@@ -88,10 +74,7 @@ namespace Ants {
 	}
 	
 	public class Ant : TeamLocation, IEquatable<Ant> {
-        public Ant(Location loc, int team) : base(loc, team)
-        {
-        }
-        public Ant (int row, int col, int team) : base (row, col, team) {
+		public Ant (int row, int col, int team) : base (row, col, team) {
 		}
 
 		public bool Equals (Ant other) {

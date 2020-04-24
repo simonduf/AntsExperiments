@@ -43,7 +43,6 @@ namespace Ants {
 
         private Tile[,] map;
         public bool[,] visibility;
-        public bool[,] OccupiedNextRound;
 
         public GameState(int width, int height,
                           int turntime, int loadtime,
@@ -74,7 +73,6 @@ namespace Ants {
             }
 
             visibility = new bool[height, width];
-            OccupiedNextRound = new bool[height, width];
         }
 
         #region State mutators
@@ -98,7 +96,6 @@ namespace Ants {
             // set all known food to unseen
             foreach (Location loc in FoodTiles) map[loc.Row, loc.Col] = Tile.Land;
             FoodTiles.Clear();
-            OccupiedNextRound.Init(false);
         }
 
         public void AddAnt(int row, int col, int team) {
@@ -107,7 +104,6 @@ namespace Ants {
             Ant ant = new Ant(row, col, team);
             if (team == 0) {
                 MyAnts.Add(ant);
-                OccupiedNextRound.Set(ant, true);
             } else {
                 EnemyAnts.Add(ant);
             }
@@ -194,7 +190,7 @@ namespace Ants {
         }
 
 
-        void warpAround(ref int row, ref int col)
+        void WrapAround(ref int row, ref int col)
         {
             row = (row) % Height;
             if (row < 0) row += Height; // because the modulo of a negative number is negative
@@ -202,7 +198,6 @@ namespace Ants {
             col = (col) % Width;
             if (col < 0) col += Width;
         }
-
 
         /// <summary>
         /// Gets the distance between <paramref name="loc1"/> and <paramref name="loc2"/>.
@@ -219,41 +214,6 @@ namespace Ants {
 
             return d_row + d_col;
         }
-
-        // 9 1 = 2 , -8
-        // 1 9 = -2, 8
-
-
-        public int getHorizontalDelta(Location loc1, Location loc2)
-        {
-            int d_col1 = loc2.Col - loc1.Col;
-            int d_col2 = (d_col1>0? 1:-1)* (Height - Math.Abs(d_col1));
-            return Math.Abs(d_col1) < Math.Abs(d_col2) ? d_col1 : d_col2;
-        }
-
-        public int getVerticalDelta(Location loc1, Location loc2)
-        {
-            int d_row1 = loc2.Row - loc1.Row;
-            int d_row2 = (d_row1 > 0 ? 1 : -1) * (Height - Math.Abs(d_row1));
-            return Math.Abs(d_row1) < Math.Abs(d_row2) ? d_row1 : d_row2;
-        }
-
-        public Direction GetBestDirection(Location loc1, Location loc2)
-        {
-            int horz = getHorizontalDelta(loc1, loc2);
-            int vert = getVerticalDelta(loc1, loc2);
-
-            if (Math.Abs(vert) > Math.Abs(horz))
-            {
-                return vert > 0 ?  Direction.South: Direction.North;
-            }
-            else
-            {
-                return horz > 0 ? Direction.East : Direction.West;
-            }
-            
-        }
-
 
         /// <summary>
         /// Gets the closest directions to get from <paramref name="loc1"/> to <paramref name="loc2"/>.
@@ -320,87 +280,47 @@ namespace Ants {
             }
         }
 
-
+        
         public void CalculateVisibility()
         {
-            visibility.Init(false);
-
+            for (int i = 0; i < visibility.GetLength(0); i++)
+            {
+                for (int j = 0; j < visibility.GetLength(1); j++)
+                {
+                    visibility [i, j] = false;
+                }
+            }
 
             foreach (Ant ant in this.MyAnts)
             {
                 foreach (Location offset in Offsets)
                 {
                     int col = ant.Col + offset.Col;
-                    int row = ant.Row + offset.Row;
+                    int row =ant.Row + offset.Row;
 
-                    warpAround(ref row, ref col);
+                    WrapAround(ref row, ref col);
 
-                    visibility[row, col] = true;
+                    visibility[row,col ] = true;
                 }
             }
 
         }
 
         public bool GetIsVisible(Location loc)
-        {
-
-            return visibility.At(loc);
-
-
-        }
-
-    }
-
-    public static class StateHelper
-    {
-        public static T At<T>(this T[,] map, Location loc)
-        {
-            try
-            {
-                return map[loc.Row, loc.Col];
-            }
-            catch (Exception e)
-            {
-                Log.Debug("At(" + loc.Row + " , " + loc.Col + ") " + map.GetLength(0) + "," + map.GetLength(1));
-                throw;
-            }
-        }
-
-        public static T Set<T>(this T[,] map, Location loc, T value)
-        {
-            try
-            {
-                return map[loc.Row, loc.Col] = value;
-            }
-            catch (Exception e)
-            {
-                string msg = "Set(" + loc.Row + " , " + loc.Col + ") " + map.GetLength(0) + "," + map.GetLength(1);
-                Log.Debug(msg);
+		{
+            //try
+            //{
                 
-                throw new Exception(msg,e);
-            }
+                return visibility[loc.Row, loc.Col];
+            //}
+            //catch (Exception e)
+            //{
+            //    Log.Debug("GetIsVisible(" + loc.Row + " , " + loc.Col + ") " + visibility.GetLength(0) + "," + visibility.GetLength(1));
+            //    throw;
+            //}
+
         }
 
-        public static T[,] NewMap<T>(this IGameState state)
-        {
-            return new T[state.Height, state.Width];
-        }
-
-
-        public static void Init<T>(this T[,] array, T val)
-        {
-            for (int i = 0; i < array.GetLength(0); i++)
-            {
-                for (int j = 0; j < array.GetLength(1); j++)
-                {
-                    array[i, j] = val;
-                }
-            }
-        }
-
-    }
-
-
-
+	}
 }
 
