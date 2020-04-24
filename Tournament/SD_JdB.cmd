@@ -21,7 +21,7 @@ SET preViz=
 SET postViz=
 )
 
-python "%toolsPath%\playgame.py" %preViz% --engine_seed 42 --player_seed 42 --end_wait=11.25 --verbose --log_dir game_logs --turns 100 --map_file %Map% %bot1Path% %bot2Path% %postViz%
+python "%toolsPath%\playgame.py" %preViz% --engine_seed 42 --player_seed 42 --end_wait=11.25 --verbose --log_dir game_logs --turns 1000 --map_file %Map% %bot1Path% %bot2Path% %postViz%
 
 
 endlocal
