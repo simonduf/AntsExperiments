@@ -1,14 +1,16 @@
-::@echo off
+@echo off
 
 setlocal
-set toolsPath=%~dp0tools
+set toolsPath=%~dp0..\tools
 
-set bot1Path="""%~dp0Bot1\bin\x64\Debug\Bot1.exe"""
+set bot1Path="""%~dp0bin\x64\Debug\Bot1.exe"""
 set bot2Path="python ""%toolsPath%\sample_bots\python\LeftyBot.py"""
 set bot3Path="python ""%toolsPath%\sample_bots\python\HunterBot.py"""
 set bot4Path="python ""%toolsPath%\sample_bots\python\RandomBot.py"""
 set Map="%toolsPath%\maps\maze\maze_p04_11.map"
 
+
+if not exist %bot1Path% (echo %bot1Path% does not exist)
 
 ::set visualise=Yes!
 set visualise=

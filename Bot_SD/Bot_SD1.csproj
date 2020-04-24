@@ -5,7 +5,7 @@
     <ProjectGuid>{15DC0E0D-4B67-4D75-8D26-CE8C970E44FD}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <NoStandardLibraries>false</NoStandardLibraries>
-    <AssemblyName>Bot1</AssemblyName>
+    <AssemblyName>Bot_SD1</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <TargetFrameworkProfile>Client</TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
@@ -30,7 +30,7 @@
     <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup>
-    <RootNamespace>Bot1</RootNamespace>
+    <RootNamespace>Bot_SD1</RootNamespace>
   </PropertyGroup>
   <PropertyGroup>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>

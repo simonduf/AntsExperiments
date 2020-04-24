@@ -1,12 +1,15 @@
-::@echo off
+@echo off
 
 setlocal
 set toolsPath=%~dp0..\tools
 
-set bot1Path="""%~dp0Contenders\Bot_SD\Bot_SD.exe"""
+set bot1Path="""%~dp0Contenders\Bot_SD\Bot_SD1.exe"""
 set bot2Path="""%~dp0Contenders\Bot_JdB\Bot_JdB.exe"""
 set Map="%toolsPath%\maps\maze\maze_p02_01.map"
 
+
+if not exist %bot1Path% (echo %bot1Path% does not exist)
+if not exist %bot2Path% (echo %bot2Path% does not exist)
 
 ::set visualise=Yes!
 set visualise=

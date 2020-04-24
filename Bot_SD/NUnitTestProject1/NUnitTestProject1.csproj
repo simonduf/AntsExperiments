@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Bot1\Bot1.csproj" />
+    <ProjectReference Include="..\Bot_SD1.csproj" />
   </ItemGroup>
 
 </Project>
