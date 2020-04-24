@@ -220,6 +220,41 @@ namespace Ants {
             return d_row + d_col;
         }
 
+        // 9 1 = 2 , -8
+        // 1 9 = -2, 8
+
+
+        public int getHorizontalDelta(Location loc1, Location loc2)
+        {
+            int d_col1 = loc2.Col - loc1.Col;
+            int d_col2 = (d_col1>0? 1:-1)* (Height - Math.Abs(d_col1));
+            return Math.Abs(d_col1) < Math.Abs(d_col2) ? d_col1 : d_col2;
+        }
+
+        public int getVerticalDelta(Location loc1, Location loc2)
+        {
+            int d_row1 = loc2.Row - loc1.Row;
+            int d_row2 = (d_row1 > 0 ? 1 : -1) * (Height - Math.Abs(d_row1));
+            return Math.Abs(d_row1) < Math.Abs(d_row2) ? d_row1 : d_row2;
+        }
+
+        public Direction GetBestDirection(Location loc1, Location loc2)
+        {
+            int horz = getHorizontalDelta(loc1, loc2);
+            int vert = getVerticalDelta(loc1, loc2);
+
+            if (Math.Abs(vert) > Math.Abs(horz))
+            {
+                return vert > 0 ?  Direction.South: Direction.North;
+            }
+            else
+            {
+                return horz > 0 ? Direction.East : Direction.West;
+            }
+            
+        }
+
+
         /// <summary>
         /// Gets the closest directions to get from <paramref name="loc1"/> to <paramref name="loc2"/>.
         /// </summary>
@@ -346,7 +381,10 @@ namespace Ants {
             }
         }
 
-
+        public static T[,] NewMap<T>(this IGameState state)
+        {
+            return new T[state.Height, state.Width];
+        }
 
 
         public static void Init<T>(this T[,] array, T val)
