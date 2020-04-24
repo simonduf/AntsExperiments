@@ -42,6 +42,8 @@ namespace Ants {
 					} else if (line.Equals(GO)) {
 						state.StartNewTurn();
 						ParseUpdate(input);
+						state.CalculateVisibility();
+						state.ClearHills();
 						bot.DoTurn(state);
 						FinishTurn();
 						input.Clear();

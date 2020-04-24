@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using static Ants.Logger;
+using StateTile = Ants.Tile;
 
 namespace Ants {
 	
-	public class GameState : IGameState {
+	public class GameState
+	{
 		
 		public int Width { get; private set; }
 		public int Height { get; private set; }
@@ -31,17 +33,54 @@ namespace Ants {
 		public List<Location> DeadTiles { get; private set; }
 		public List<Location> FoodTiles { get; private set; }
 
-		public Tile[,] AllTiles { get { return map; } }
-
-		public Tile this[Location location] {
-			get { return this.map[location.Row, location.Col]; }
-		}
-
-		public Tile this[int row, int col] {
-			get { return this.map[row, col]; }
-		}
 		
-		private Tile[,] map;
+		
+		public enum Terrain
+		{
+			Land, Water, Unknown
+		}
+
+		public struct Tile
+		{
+			public Terrain terrain;
+			public bool isEnemyAnt;
+			public bool isEnemyHill;
+			public bool isMyAnt;
+			public bool isMyHill;
+			public bool isDeadAnt;
+			public bool isVisible;
+			public bool isFood;
+			public bool isActiveHill;
+		}
+
+		private readonly Tile defaultTile = new Tile()
+		{
+			terrain = Terrain.Unknown,
+			isEnemyAnt = false,
+			isEnemyHill = false,
+			isVisible = false,
+			isDeadAnt = false,
+			isMyHill = false,
+			isMyAnt = false,
+			isFood = false,
+			isActiveHill = false,
+		};
+
+
+
+		private static void ClearDynamic(ref Tile tile)
+		{
+			tile.isVisible = false;
+			tile.isEnemyAnt = false;
+			tile.isDeadAnt = false;
+			tile.isMyAnt = false;
+			tile.isFood = false;
+			tile.isActiveHill = false;
+		}
+
+
+		public Vector2i[] coords;
+		public Tile[,] map;
 		
 		public GameState (int width, int height, 
 		                  int turntime, int loadtime, 
@@ -64,12 +103,20 @@ namespace Ants {
 			DeadTiles = new List<Location>();
 			FoodTiles = new List<Location>();
 			
-			map = new Tile[height, width];
-			for (int row = 0; row < height; row++) {
-				for (int col = 0; col < width; col++) {
-					map[row, col] = Tile.Land;
+
+
+			map = new Tile[width, height];
+			coords = new Vector2i[width * height];
+
+			for (int i = 0; i < width; i++)
+			{
+				for (int j = 0; j < height; j++)
+				{
+					coords[i + j * width] = new Vector2i(i, j);
+					map[i, j] = defaultTile;
 				}
 			}
+
 		}
 
 		#region State mutators
@@ -77,204 +124,73 @@ namespace Ants {
 			// start timer
 			turnStart = DateTime.Now;
 
-			// clear ant data
-
-			/*
-			foreach (Location loc in MyAnts) map[loc.Row, loc.Col] = Tile.Land;
-			foreach (Location loc in MyHills) map[loc.Row, loc.Col] = Tile.Land;
-			foreach (Location loc in EnemyAnts) map[loc.Row, loc.Col] = Tile.Land;
-			foreach (Location loc in EnemyHills) map[loc.Row, loc.Col] = Tile.Land;
-			foreach (Location loc in DeadTiles) map[loc.Row, loc.Col] = Tile.Land;
-			*/
-			CalculateVisibility();
+			foreach (var coord in coords)
+				ClearDynamic(ref map[coord.x, coord.y]);
+			
 
 			MyHills.Clear();
 			MyAnts.Clear();
 			EnemyHills.Clear();
 			EnemyAnts.Clear();
 			DeadTiles.Clear();
-			
-			// set all known food to unseen
-			foreach (Location loc in FoodTiles) map[loc.Row, loc.Col] = Tile.Land;
 			FoodTiles.Clear();
 		}
 
-		public void AddAnt (int row, int col, int team) {
-			
+		public void AddAnt (int row, int col, int team) 
+		{
 			
 			Ant ant = new Ant(row, col, team);
 			if (team == 0) {
 				MyAnts.Add(ant);
-				map[row, col] = Tile.MyAnt;
+				map[col, row].isMyAnt = true;
 			} else {
 				EnemyAnts.Add(ant);
-				map[row, col] = Tile.TheirAnt;
+				map[col, row].isEnemyAnt = true;
 			}
+
 		}
 
 		public void AddFood (int row, int col) {
-			map[row, col] = Tile.Food;
+			map[col, row].isFood = true;
 			FoodTiles.Add(new Location(row, col));
 		}
 
 		public void RemoveFood (int row, int col) {
-			// an ant could move into a spot where a food just was
-			// don't overwrite the space unless it is food
-			if (map[row, col] == Tile.Food) {
-				map[row, col] = Tile.Land;
-			}
+			map[col, row].isFood = false;
 			FoodTiles.Remove(new Location(row, col));
 		}
 
 		public void AddWater (int row, int col) {
-			map[row, col] = Tile.Water;
+			map[col, row].terrain = Terrain.Water;
 		}
 
 		public void DeadAnt (int row, int col) {
-			// food could spawn on a spot where an ant just died
-			// don't overwrite the space unless it is land
-			if (map[row, col] == Tile.Land) {
-				map[row, col] = Tile.Dead;
-			}
-			
+
+			map[col, row].isDeadAnt = true;
+
 			// but always add to the dead list
 			DeadTiles.Add(new Location(row, col));
 		}
 
 		public void AntHill (int row, int col, int team) {
 
-			if (map[row, col] == Tile.Land) {
-				map[row, col] = team == 0 ? Tile.MyHill: Tile.TheirHill;
-			}
 
 			AntHill hill = new AntHill (row, col, team);
+			map[col, row].isActiveHill = true;
 			if (team == 0)
-				MyHills.Add (hill);
+			{
+				MyHills.Add(hill);
+				map[col, row].isMyHill = true;
+			}
 			else
-				EnemyHills.Add (hill);
+			{
+				EnemyHills.Add(hill);
+				map[col, row].isEnemyHill = true;
+			}
 		}
 		#endregion
 
-		/// <summary>
-		/// Gets whether <paramref name="location"/> is passable or not.
-		/// </summary>
-		/// <param name="location">The location to check.</param>
-		/// <returns><c>true</c> if the location is not water, <c>false</c> otherwise.</returns>
-		/// <seealso cref="GetIsUnoccupied"/>
-		public bool GetIsPassable (Location location) {
-			return map[location.Row, location.Col] != Tile.Water;
-		}
 		
-		/// <summary>
-		/// Gets whether <paramref name="location"/> is occupied or not.
-		/// </summary>
-		/// <param name="location">The location to check.</param>
-		/// <returns><c>true</c> if the location is passable and does not contain an ant, <c>false</c> otherwise.</returns>
-		public bool GetIsUnoccupied (Location location) {
-			return GetIsPassable(location) && (map[location.Row, location.Col] != Tile.MyAnt && map[location.Row, location.Col] != Tile.TheirAnt);
-		}
-		
-		/// <summary>
-		/// Gets the destination if an ant at <paramref name="location"/> goes in <paramref name="direction"/>, accounting for wrap around.
-		/// </summary>
-		/// <param name="location">The starting location.</param>
-		/// <param name="direction">The direction to move.</param>
-		/// <returns>The new location, accounting for wrap around.</returns>
-		public Location GetDestination (Location location, Direction direction) {
-			Location delta = Ants.Aim[direction];
-			
-			int row = (location.Row + delta.Row) % Height;
-			if (row < 0) row += Height; // because the modulo of a negative number is negative
-
-			int col = (location.Col + delta.Col) % Width;
-			if (col < 0) col += Width;
-			
-			return new Location(row, col);
-		}
-
-		/// <summary>
-		/// Gets the distance between <paramref name="loc1"/> and <paramref name="loc2"/>.
-		/// </summary>
-		/// <param name="loc1">The first location to measure with.</param>
-		/// <param name="loc2">The second location to measure with.</param>
-		/// <returns>The distance between <paramref name="loc1"/> and <paramref name="loc2"/></returns>
-		public int GetDistance (Location loc1, Location loc2) {
-			int d_row = Math.Abs(loc1.Row - loc2.Row);
-			d_row = Math.Min(d_row, Height - d_row);
-			
-			int d_col = Math.Abs(loc1.Col - loc2.Col);
-			d_col = Math.Min(d_col, Width - d_col);
-			
-			return d_row + d_col;
-		}
-
-		/// <summary>
-		/// Gets the closest directions to get from <paramref name="loc1"/> to <paramref name="loc2"/>.
-		/// </summary>
-		/// <param name="loc1">The location to start from.</param>
-		/// <param name="loc2">The location to determine directions towards.</param>
-		/// <returns>The 1 or 2 closest directions from <paramref name="loc1"/> to <paramref name="loc2"/></returns>
-		public ICollection<Direction> GetDirections (Location loc1, Location loc2) {
-			List<Direction> directions = new List<Direction>();
-			
-			if (loc1.Row < loc2.Row) {
-				if (loc2.Row - loc1.Row >= Height / 2)
-					directions.Add(Direction.North);
-				if (loc2.Row - loc1.Row <= Height / 2)
-					directions.Add(Direction.South);
-			}
-			if (loc2.Row < loc1.Row) {
-				if (loc1.Row - loc2.Row >= Height / 2)
-					directions.Add(Direction.South);
-				if (loc1.Row - loc2.Row <= Height / 2)
-					directions.Add(Direction.North);
-			}
-			
-			if (loc1.Col < loc2.Col) {
-				if (loc2.Col - loc1.Col >= Width / 2)
-					directions.Add(Direction.West);
-				if (loc2.Col - loc1.Col <= Width / 2)
-					directions.Add(Direction.East);
-			}
-			if (loc2.Col < loc1.Col) {
-				if (loc1.Col - loc2.Col >= Width / 2)
-					directions.Add(Direction.East);
-				if (loc1.Col - loc2.Col <= Width / 2)
-					directions.Add(Direction.West);
-			}
-			
-			return directions;
-		}
-		
-		public bool GetIsVisible(Location loc)
-		{
-			List<Location> offsets = new List<Location>();
-			int squares = (int)Math.Floor(Math.Sqrt(this.ViewRadius2));
-			for (int r = -1 * squares; r <= squares; ++r)
-			{
-				for (int c = -1 * squares; c <= squares; ++c)
-				{
-					int square = r * r + c * c;
-					if (square < this.ViewRadius2)
-					{
-						offsets.Add(new Location(r, c));
-					}
-				}
-			}
-			foreach (Ant ant in this.MyAnts)
-			{
-				foreach (Location offset in offsets)
-				{
-					if ((ant.Col + offset.Col) == loc.Col &&
-						(ant.Row + offset.Row) == loc.Row)
-					{
-								 return true;
-					}
-				}
-			}
-			return false;
-		}
-
 		private void WrapAround(ref int row, ref int col)
 		{
 			row = (row) % Height;
@@ -286,13 +202,8 @@ namespace Ants {
 
 		public void CalculateVisibility()
 		{
-			for (int i = 0; i < map.GetLength(0); i++)
-			{
-				for (int j = 0; j < map.GetLength(1); j++)
-				{
-					map[i, j] = Tile.Unseen;
-				}
-			}
+			
+				
 
 			foreach (Ant ant in this.MyAnts)
 			{
@@ -303,8 +214,89 @@ namespace Ants {
 
 					WrapAround(ref row, ref col);
 
-					map[row, col] = Tile.Land;
+					map[col, row].isVisible = true;
+
+					if (map[col, row].terrain == Terrain.Unknown)
+						map[col, row].terrain = Terrain.Land;
 				}
+			}
+
+		}
+
+		public void ClearHills()
+		{
+			foreach(var coord in coords)
+			{
+				var tile = map[coord.x, coord.y];
+
+				bool isHill = tile.isEnemyHill || tile.isMyHill;
+
+				if (isHill && !tile.isActiveHill && tile.isVisible)
+				{
+					tile.isEnemyHill = false;
+					tile.isMyHill = false;
+					map[coord.x, coord.y] = tile;
+				}
+			}
+		}
+
+		
+
+		
+
+		public void Set(StateTile[,] state)
+		{
+			StartNewTurn();
+
+			foreach(var coord in coords)
+			{
+				map[coord.x, coord.y].isVisible = true;
+
+				switch(state[coord.y, coord.x])
+				{
+					case StateTile.Land:
+						break;
+
+					case StateTile.Water:
+						AddWater(coord.y, coord.x);
+						break;
+
+					case StateTile.Food:
+						AddFood(coord.y, coord.x);
+						break;
+
+					case StateTile.MyAnt:
+						AddAnt(coord.y, coord.x, 0);
+						break;
+
+					case StateTile.TheirAnt:
+						AddAnt(coord.y, coord.x, 1);
+						break;
+
+					case StateTile.MyHill:
+						AntHill(coord.y, coord.x, 0);
+						break;
+
+					case StateTile.TheirHill:
+						AntHill(coord.y, coord.x, 1);
+						break;
+
+					case StateTile.Unseen:
+						map[coord.x, coord.y].isVisible = false;
+						break;
+
+					default:
+						break;
+				}
+
+				//
+				//	Set visibility
+				//
+				if (map[coord.x, coord.y].terrain == Terrain.Unknown && map[coord.x, coord.y].isVisible)
+					map[coord.x, coord.y].terrain = Terrain.Land;
+
+				ClearHills();
+
 			}
 
 		}

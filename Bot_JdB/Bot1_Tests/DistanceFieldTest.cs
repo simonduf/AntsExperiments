@@ -8,12 +8,16 @@ namespace Bot1_Tests
     [TestClass]
     public class DistanceFieldTest
     {
+        static GameState TestGameState(int width, int height)
+        {
+            return new GameState(width, height, 1, 1, 1, 1, 1);
+        }
 
         [TestMethod]
         public void TestBasic()
         {
-            PersistentGameState gameState = new PersistentGameState(5, 5);
-            DistanceField dut = new DistanceField(gameState, Tile.Food);
+            GameState gameState = TestGameState(5, 5);
+            DistanceField dut = new DistanceField(gameState, tile => tile.isFood);
 
             const Tile f = Tile.Food;
             const Tile _ = Tile.Land;
@@ -27,7 +31,7 @@ namespace Bot1_Tests
                 {_,_,_,_,_}
             };
 
-            gameState.Update(map);
+            gameState.Set(map);
             
 
             dut.Propagate(5);
@@ -47,28 +51,27 @@ namespace Bot1_Tests
             Assert.AreEqual(2, dut.GetDistance(0, 2));
         }
 
+        
         [TestMethod]
         public void TestDropout()
         {
-            PersistentGameState gameState = new PersistentGameState(5, 5);
-            DistanceField dut = new DistanceField(gameState, Tile.Food);
+            GameState gameState = TestGameState(5, 5);
+            DistanceField dut = new DistanceField(gameState, tile => tile.isFood);
 
             const Tile f = Tile.Food;
             const Tile _ = Tile.Land;
 
-            Tile[,] map = new Tile[,]
+            gameState.Set(new Tile[,]
             {
                 {_,_,_,_,_},
                 {_,_,_,_,_},
                 {_,_,f,_,_},
                 {_,_,_,_,_},
                 {_,_,_,_,_}
-            };
-
-            gameState.Update(map);
+            });
             dut.Propagate(5);
 
-            gameState.Update(new Tile[,]
+            gameState.Set(new Tile[,]
             {
                 {_,_,_,_,_},
                 {_,_,_,_,_},
@@ -88,13 +91,13 @@ namespace Bot1_Tests
             
         }
 
-
+        
 
         [TestMethod]
         public void TestBasic_NotSquare()
         {
-            PersistentGameState gameState = new PersistentGameState(7, 5);
-            DistanceField dut = new DistanceField(gameState, Tile.Food);
+            GameState gameState = TestGameState(7, 5);
+            DistanceField dut = new DistanceField(gameState, tile => tile.isFood);
 
             const Tile f = Tile.Food;
             const Tile _ = Tile.Land;
@@ -108,7 +111,7 @@ namespace Bot1_Tests
                 {_,_,_,_,_,_,_}
             };
 
-            gameState.Update(map);
+            gameState.Set(map);
 
             dut.Propagate(10);
 
@@ -127,11 +130,13 @@ namespace Bot1_Tests
             Assert.AreEqual(2, dut.GetDistance(0, 2));
         }
 
+        
+
         [TestMethod]
         public void TestWrap()
         {
-            PersistentGameState gameState = new PersistentGameState(7, 5);
-            DistanceField dut = new DistanceField(gameState, Tile.Food);
+            GameState gameState = TestGameState(7, 5);
+            DistanceField dut = new DistanceField(gameState, tile => tile.isFood);
 
             const Tile f = Tile.Food;
             const Tile _ = Tile.Land;
@@ -145,7 +150,7 @@ namespace Bot1_Tests
                 {_,_,_,_,_,_,_},
                 {_,_,_,_,_,_,_}
             };
-            gameState.Update(map);
+            gameState.Set(map);
             dut.Propagate(20);
 
             Assert.AreEqual(0, dut.GetDistance(0, 0));
@@ -154,13 +159,13 @@ namespace Bot1_Tests
             Assert.AreEqual(1, dut.GetDistance(0, 4));
             Assert.AreEqual(1, dut.GetDistance(6, 0));
         }
-
+        
 
         [TestMethod]
         public void TestWater()
         {
-            PersistentGameState gameState = new PersistentGameState(7, 5);
-            DistanceField dut = new DistanceField(gameState, Tile.Food);
+            GameState gameState = TestGameState(7, 5);
+            DistanceField dut = new DistanceField(gameState, tile => tile.isFood);
 
             const Tile f = Tile.Food;
             const Tile _ = Tile.Land;
@@ -175,7 +180,7 @@ namespace Bot1_Tests
                 {_,w,_,_,_,w,_}
             };
 
-            gameState.Update(map);
+            gameState.Set(map);
             dut.Propagate(20);
 
             Assert.AreEqual(0, dut.GetDistance(2, 2));
@@ -184,11 +189,13 @@ namespace Bot1_Tests
             Assert.AreEqual(12, dut.GetDistance(6, 4));
         }
 
+        
+
         [TestMethod]
         public void TestDescent()
         {
-            PersistentGameState gameState = new PersistentGameState(7, 5);
-            DistanceField dut = new DistanceField(gameState, Tile.Food);
+            GameState gameState = TestGameState(7, 5);
+            DistanceField dut = new DistanceField(gameState, tile => tile.isFood);
 
             const Tile f = Tile.Food;
             const Tile _ = Tile.Land;
@@ -203,7 +210,7 @@ namespace Bot1_Tests
                 {_,w,_,_,_,w,_}
             };
 
-            gameState.Update(map);
+            gameState.Set(map);
             dut.Propagate(20);
 
             {
@@ -248,8 +255,8 @@ namespace Bot1_Tests
         [TestMethod]
         public void TestAscent()
         {
-            PersistentGameState gameState = new PersistentGameState(7, 5);
-            DistanceField dut = new DistanceField(gameState, Tile.Food);
+            GameState gameState = TestGameState(7, 5);
+            DistanceField dut = new DistanceField(gameState, tile => tile.isFood);
 
             const Tile f = Tile.Food;
             const Tile _ = Tile.Land;
@@ -264,7 +271,7 @@ namespace Bot1_Tests
                 {_,w,_,_,_,w,_}
             };
 
-            gameState.Update(map);
+            gameState.Set(map);
             dut.Propagate(20);
 
             {
@@ -298,8 +305,8 @@ namespace Bot1_Tests
         [TestMethod]
         public void Exploration1()
         {
-            PersistentGameState gameState = new PersistentGameState(7, 10);
-            DistanceField dut = new DistanceField(gameState, Tile.Unseen, terrain:true);
+            GameState gameState = TestGameState(7, 10);
+            DistanceField dut = new DistanceField(gameState, tile => tile.terrain == GameState.Terrain.Unknown);
 
             const Tile u = Tile.Unseen;
             const Tile f = Tile.Food;
@@ -320,7 +327,7 @@ namespace Bot1_Tests
                 {w,_,_,_,_,_,_},
             };
 
-            gameState.Update(map);
+            gameState.Set(map);
             dut.Propagate(20);
 
             {
@@ -335,8 +342,8 @@ namespace Bot1_Tests
         [TestMethod]
         public void Exploration2()
         {
-            PersistentGameState gameState = new PersistentGameState(7, 10);
-            DistanceField dut = new DistanceField(gameState, Tile.Unseen, terrain: true);
+            GameState gameState = TestGameState(7, 10);
+            DistanceField dut = new DistanceField(gameState, tile => tile.terrain == GameState.Terrain.Unknown);
 
             const Tile u = Tile.Unseen;
             const Tile f = Tile.Food;
@@ -357,7 +364,7 @@ namespace Bot1_Tests
                 {w,u,u,u,u,u,u},
             };
 
-            gameState.Update(map);
+            gameState.Set(map);
             dut.Propagate(20);
 
             {
@@ -379,32 +386,18 @@ namespace Bot1_Tests
         [TestMethod]
         public void Exploration3()
         {
-            PersistentGameState gameState = new PersistentGameState(7, 10);
-            DistanceField dut = new DistanceField(gameState, Tile.Unseen, terrain: true);
+            GameState gameState = TestGameState(7, 10);
+            DistanceField dut = new DistanceField(gameState, tile => tile.terrain == GameState.Terrain.Unknown);
 
             const Tile u = Tile.Unseen;
             const Tile f = Tile.Food;
             const Tile _ = Tile.Land;
             const Tile w = Tile.Water;
 
-            /*
-            gameState.Update(new Tile[,]
-            {
-                {w,w,w,_,w,w,w},
-                {w,w,w,_,w,w,w},
-                {w,w,w,_,w,w,w},
-                {w,w,w,_,w,w,w},
-                {w,w,w,_,w,w,w},
-                {w,w,w,_,w,w,w},
-                {w,w,w,_,w,w,w},
-                {w,w,w,_,w,w,w},
-                {w,w,w,_,w,w,w},
-                {w,w,w,w,w,w,w},
-            });
-            */
+ 
 
 
-            gameState.Update(new Tile[,]
+            gameState.Set(new Tile[,]
             {
                 {u,u,u,u,u,u,u},
                 {u,u,u,u,u,u,u},
@@ -426,7 +419,7 @@ namespace Bot1_Tests
                 Assert.AreEqual(0, dut.GetDistance(3, 6));
             }
 
-            gameState.Update(new Tile[,]
+            gameState.Set(new Tile[,]
             {
                 {u,u,u,u,u,u,u},
                 {u,u,u,u,u,u,u},
@@ -455,7 +448,7 @@ namespace Bot1_Tests
             }
 
 
-            gameState.Update(new Tile[,]
+            gameState.Set(new Tile[,]
             {
                 {u,u,u,u,u,u,u},
                 {w,w,w,_,w,w,w},
@@ -489,8 +482,8 @@ namespace Bot1_Tests
         [TestMethod]
         public void PartialPropagation()
         {
-            PersistentGameState gameState = new PersistentGameState(5, 5);
-            DistanceField dut = new DistanceField(gameState, Tile.Food);
+            GameState gameState = TestGameState(5, 5);
+            DistanceField dut = new DistanceField(gameState, tile => tile.isFood);
 
             const Tile f = Tile.Food;
             const Tile _ = Tile.Land;
@@ -504,7 +497,7 @@ namespace Bot1_Tests
                 {_,_,_,_,_}
             };
 
-            gameState.Update(map);
+            gameState.Set(map);
 
 
             dut.Propagate(1);
@@ -563,8 +556,8 @@ namespace Bot1_Tests
         [TestMethod]
         public void ProblemCase1()
         {
-            PersistentGameState gameState = new PersistentGameState(7, 10);
-            DistanceField dut = new DistanceField(gameState, Tile.Food);
+            GameState gameState = TestGameState(7, 10);
+            DistanceField dut = new DistanceField(gameState, tile => tile.isFood);
 
             const Tile f = Tile.Food;
             const Tile _ = Tile.Land;
@@ -585,7 +578,7 @@ namespace Bot1_Tests
                 {w,w,w,w,w,w,w},
             };
 
-            gameState.Update(map);
+            gameState.Set(map);
             dut.Propagate(20);
 
             {
@@ -598,8 +591,8 @@ namespace Bot1_Tests
         [TestMethod]
         public void ProblemCase2()
         {
-            PersistentGameState gameState = new PersistentGameState(7, 10);
-            DistanceField dut = new DistanceField(gameState, Tile.Food);
+            GameState gameState = TestGameState(7, 10);
+            DistanceField dut = new DistanceField(gameState, tile => tile.isFood);
 
             const Tile f = Tile.Food;
             const Tile _ = Tile.Land;
@@ -620,7 +613,7 @@ namespace Bot1_Tests
                 {w,w,w,w,w,w,w},
             };
 
-            gameState.Update(map);
+            gameState.Set(map);
             dut.Propagate(20);
 
             {
@@ -639,8 +632,8 @@ namespace Bot1_Tests
         [TestMethod]
         public void ProblemCase3_AntHills()
         {
-            PersistentGameState gameState = new PersistentGameState(7, 10);
-            DistanceField dut = new DistanceField(gameState, Tile.TheirHill, terrain:true);
+            GameState gameState = TestGameState(7, 10);
+            DistanceField dut = new DistanceField(gameState, tile => tile.isEnemyHill);
 
             const Tile f = Tile.Food;
             const Tile _ = Tile.Land;
@@ -648,7 +641,7 @@ namespace Bot1_Tests
             const Tile h = Tile.TheirHill;
             const Tile u = Tile.Unseen;
 
-            gameState.Update(new Tile[,]
+            gameState.Set(new Tile[,]
             {
                 {_,w,w,_,_,_,w},
                 {_,w,w,h,_,_,w},
@@ -680,7 +673,7 @@ namespace Bot1_Tests
 
 
 
-            gameState.Update(new Tile[,]
+            gameState.Set(new Tile[,]
             {
                 {_,w,w,_,_,_,w},
                 {_,w,w,u,_,_,w},
@@ -714,8 +707,8 @@ namespace Bot1_Tests
         [TestMethod]
         public void TestWrap1x()
         {
-            PersistentGameState gameState = new PersistentGameState(5, 7);
-            DistanceField dut = new DistanceField(gameState, Tile.Food);
+            GameState gameState = TestGameState(5, 7);
+            DistanceField dut = new DistanceField(gameState, tile => tile.isFood);
             Vector2i result = dut.Wrap(new Vector2i(2, 3));
             Assert.AreEqual(2, result.x);
             Assert.AreEqual(3, result.y);
@@ -724,8 +717,8 @@ namespace Bot1_Tests
         [TestMethod]
         public void TestWrap2x()
         {
-            PersistentGameState gameState = new PersistentGameState(5, 7);
-            DistanceField dut = new DistanceField(gameState, Tile.Food);
+            GameState gameState = TestGameState(5, 7);
+            DistanceField dut = new DistanceField(gameState, tile => tile.isFood);
             Vector2i result = dut.Wrap(new Vector2i(5, 3));
             Assert.AreEqual(0, result.x);
             Assert.AreEqual(3, result.y);
@@ -734,8 +727,8 @@ namespace Bot1_Tests
         [TestMethod]
         public void TestWrap3x()
         {
-            PersistentGameState gameState = new PersistentGameState(5, 7);
-            DistanceField dut = new DistanceField(gameState, Tile.Food);
+            GameState gameState = TestGameState(5, 7);
+            DistanceField dut = new DistanceField(gameState, tile => tile.isFood);
             Vector2i result = dut.Wrap(new Vector2i(-1, 3));
             Assert.AreEqual(4, result.x);
             Assert.AreEqual(3, result.y);
@@ -744,8 +737,8 @@ namespace Bot1_Tests
         [TestMethod]
         public void TestWrap4x()
         {
-            PersistentGameState gameState = new PersistentGameState(5, 7);
-            DistanceField dut = new DistanceField(gameState, Tile.Food);
+            GameState gameState = TestGameState(5, 7);
+            DistanceField dut = new DistanceField(gameState, tile => tile.isFood);
             Vector2i result = dut.Wrap(new Vector2i(0, 3));
             Assert.AreEqual(0, result.x);
             Assert.AreEqual(3, result.y);
@@ -754,8 +747,8 @@ namespace Bot1_Tests
         [TestMethod]
         public void TestWrap5x()
         {
-            PersistentGameState gameState = new PersistentGameState(5, 7);
-            DistanceField dut = new DistanceField(gameState, Tile.Food);
+            GameState gameState = TestGameState(5, 7);
+            DistanceField dut = new DistanceField(gameState, tile => tile.isFood);
             Vector2i result = dut.Wrap(new Vector2i(4, 3));
             Assert.AreEqual(4, result.x);
             Assert.AreEqual(3, result.y);
@@ -764,8 +757,8 @@ namespace Bot1_Tests
         [TestMethod]
         public void TestWrap1y()
         {
-            PersistentGameState gameState = new PersistentGameState(5, 7);
-            DistanceField dut = new DistanceField(gameState, Tile.Food);
+            GameState gameState = TestGameState(5, 7);
+            DistanceField dut = new DistanceField(gameState, tile => tile.isFood);
             Vector2i result = dut.Wrap(new Vector2i(2, 3));
             Assert.AreEqual(2, result.x);
             Assert.AreEqual(3, result.y);
@@ -774,8 +767,8 @@ namespace Bot1_Tests
         [TestMethod]
         public void TestWrap2y()
         {
-            PersistentGameState gameState = new PersistentGameState(5, 7);
-            DistanceField dut = new DistanceField(gameState, Tile.Food);
+            GameState gameState = TestGameState(5, 7);
+            DistanceField dut = new DistanceField(gameState, tile => tile.isFood);
             Vector2i result = dut.Wrap(new Vector2i(2, 7));
             Assert.AreEqual(2, result.x);
             Assert.AreEqual(0, result.y);
@@ -784,8 +777,8 @@ namespace Bot1_Tests
         [TestMethod]
         public void TestWrap3y()
         {
-            PersistentGameState gameState = new PersistentGameState(5, 7);
-            DistanceField dut = new DistanceField(gameState, Tile.Food);
+            GameState gameState = TestGameState(5, 7);
+            DistanceField dut = new DistanceField(gameState, tile => tile.isFood);
             Vector2i result = dut.Wrap(new Vector2i(2, -1));
             Assert.AreEqual(2, result.x);
             Assert.AreEqual(6, result.y);
@@ -794,8 +787,8 @@ namespace Bot1_Tests
         [TestMethod]
         public void TestWrap4y()
         {
-            PersistentGameState gameState = new PersistentGameState(5, 7);
-            DistanceField dut = new DistanceField(gameState, Tile.Food);
+            GameState gameState = TestGameState(5, 7);
+            DistanceField dut = new DistanceField(gameState, tile => tile.isFood);
             Vector2i result = dut.Wrap(new Vector2i(2, 0));
             Assert.AreEqual(2, result.x);
             Assert.AreEqual(0, result.y);
@@ -804,12 +797,13 @@ namespace Bot1_Tests
         [TestMethod]
         public void TestWrap5y()
         {
-            PersistentGameState gameState = new PersistentGameState(5, 7);
-            DistanceField dut = new DistanceField(gameState, Tile.Food);
+            GameState gameState = TestGameState(5, 7);
+            DistanceField dut = new DistanceField(gameState, tile => tile.isFood);
             Vector2i result = dut.Wrap(new Vector2i(2, 6));
             Assert.AreEqual(2, result.x);
             Assert.AreEqual(6, result.y);
         }
+
 
 
 

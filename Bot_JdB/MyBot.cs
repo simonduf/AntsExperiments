@@ -11,7 +11,6 @@ namespace Ants {
     class MyBot : Bot {
 
 
-        private PersistentGameState pState;
 
         private DistanceField exploration = null;
         private DistanceField food = null;
@@ -22,46 +21,35 @@ namespace Ants {
         int width;
         int height;
 
-        public override void DoTurn(IGameState state) {
+        public override void DoTurn(GameState state) {
 
             width = state.Width;
             height = state.Height;
 
             turn++;
 
-            if (pState == null)
-                pState = new PersistentGameState(state.Width, state.Height);
 
             if (exploration == null)
-                exploration = new DistanceField(pState, Tile.Unseen, terrain: true);
+                exploration = new DistanceField(state, tile => tile.terrain == GameState.Terrain.Unknown);
 
             if (food == null)
-                food = new DistanceField(pState, Tile.Food);
+                food = new DistanceField(state, tile => tile.isFood);
 
             if (enemy == null)
-                enemy = new DistanceField(pState, Tile.TheirHill, terrain: true);
+                enemy = new DistanceField(state, tile => tile.isEnemyHill);
 
             if (occupied == null)
                 occupied = new bool[state.Width, state.Height];
 
-            /*
-            if (turn > 75)
-            {
-                //Log.Debug("Test");
-                //Log.Debug(pState.ToString(34 - 5, 89 - 5, 10, 10));
-                Log.Debug("Turn: " + turn);
-                Print(state.AllTiles, 34 - 5, 89 - 5, 10, 10, (data,i,j) => data[j,i].ToString());
-                //Print(state.AllTiles, 44 - 10, 54 - 10, 20, 20, (data, i, j) => data[j, i].ToString());
-            }
-            */
+            
 
             try
             {
-                pState.Update(state.AllTiles);
 
-                exploration.Propagate(5);
-                food.Propagate(5);
-                enemy.Propagate(5);
+
+                exploration.Propagate(2);
+                food.Propagate(2);
+                enemy.Propagate(2);
 
                 ClearOccupied();
 
@@ -72,15 +60,12 @@ namespace Ants {
                     int y = ant.Row;
 
                     
-                    if (enemy.GetDistance(x,y) < DistanceField.Max)
-                        MoveAnt(ant, enemy.GetDescent(x, y));
-                    else if (food.GetDistance(x, y) < exploration.GetDistance(x, y))
+                    if (food.GetDistance(x, y) < 10)
                         MoveAnt(ant, food.GetDescent(x, y));
+                    else if (enemy.GetDistance(x, y) < DistanceField.Max)
+                        MoveAnt(ant, enemy.GetDescent(x, y));
                     else
                         MoveAnt(ant, exploration.GetDescent(x, y));
-
-
-                    
 
                 }
             }

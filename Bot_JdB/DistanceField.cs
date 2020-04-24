@@ -29,19 +29,18 @@ namespace Ants
         private int width;
         private int height;
         private Vector2i dims;
-        private StateTile type;
-        private PersistentGameState gameState;
-        private bool terrain;
+        
+        private GameState gameState;
+        System.Func<GameState.Tile, bool> marker;
 
 
-        public DistanceField(PersistentGameState gameState, StateTile type, bool terrain = false)
+        public DistanceField(GameState gameState, System.Func<GameState.Tile, bool> marker)
         {
-            width = gameState.dimensions.x;
-            height = gameState.dimensions.y;
-            dims = gameState.dimensions;
+            width = gameState.Width;
+            height = gameState.Height;
+            dims = new Vector2i(width, height);
 
-            this.type = type;
-            this.terrain = terrain;
+            this.marker = marker;
             this.gameState = gameState;
 
             map = new Tile[width, height];
@@ -91,7 +90,7 @@ namespace Ants
         {
             foreach (var coord in coords)
             {
-                map[coord.x, coord.y].isLand = (gameState.map[coord.x, coord.y].terrain != StateTile.Water);
+                map[coord.x, coord.y].isLand = gameState.map[coord.x, coord.y].terrain != GameState.Terrain.Water;
             }
         }
 
@@ -104,9 +103,7 @@ namespace Ants
                 int x = coord.x;
                 int y = coord.y;
 
-                bool locked = terrain ?
-                               gameState.map[x, y].terrain == type :
-                               gameState.map[x, y].objects == type;
+                bool locked = marker(gameState.map[coord.x, coord.y]);
 
                 map[x, y].isLocked = locked;
 
