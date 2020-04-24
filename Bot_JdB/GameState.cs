@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using static Ants.Logger;
 
 namespace Ants {
 	
@@ -99,13 +100,15 @@ namespace Ants {
 		}
 
 		public void AddAnt (int row, int col, int team) {
-			map[row, col] = Tile.Ant;
+			
 			
 			Ant ant = new Ant(row, col, team);
 			if (team == 0) {
 				MyAnts.Add(ant);
+				map[row, col] = Tile.MyAnt;
 			} else {
 				EnemyAnts.Add(ant);
+				map[row, col] = Tile.TheirAnt;
 			}
 		}
 
@@ -141,7 +144,7 @@ namespace Ants {
 		public void AntHill (int row, int col, int team) {
 
 			if (map[row, col] == Tile.Land) {
-				map[row, col] = Tile.Hill;
+				map[row, col] = team == 0 ? Tile.MyHill: Tile.TheirHill;
 			}
 
 			AntHill hill = new AntHill (row, col, team);
@@ -168,7 +171,7 @@ namespace Ants {
 		/// <param name="location">The location to check.</param>
 		/// <returns><c>true</c> if the location is passable and does not contain an ant, <c>false</c> otherwise.</returns>
 		public bool GetIsUnoccupied (Location location) {
-			return GetIsPassable(location) && map[location.Row, location.Col] != Tile.Ant;
+			return GetIsPassable(location) && (map[location.Row, location.Col] != Tile.MyAnt && map[location.Row, location.Col] != Tile.TheirAnt);
 		}
 		
 		/// <summary>

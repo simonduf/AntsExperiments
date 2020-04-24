@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Collections.Generic;
+using static Ants.Logger;
 
 namespace Ants {
 
@@ -27,6 +28,7 @@ namespace Ants {
 
 		public void PlayGame(Bot bot) {
 
+			Log.Debug("Starting Up");
 			List<string> input = new List<string>();
 			
 			try {
@@ -91,7 +93,7 @@ namespace Ants {
 					spawnradius2 = int.Parse(tokens[1]);
 				}
 			}
-			
+			Log.Debug("View Radius: "+viewradius2);
 			this.state = new GameState(width, height, 
 			                           turntime, loadtime, 
 			                           viewradius2, attackradius2, spawnradius2);

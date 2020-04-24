@@ -53,17 +53,42 @@ namespace Ants
                 Tile tile = map[coord.x, coord.y];
                 StateTile s = state[coord.y, coord.x];
 
-                
+
+                bool canChange = tile.terrain == StateTile.Unseen ||
+                                    tile.terrain == StateTile.MyHill ||
+                                    tile.terrain == StateTile.TheirHill;
                 //
                 //  Update unknown terrain. Either it's water or land. If there's
                 //  a special object, then it is also land.
                 //
-                if (tile.terrain == StateTile.Unseen && s != StateTile.Unseen)
-                    tile.terrain = (s == StateTile.Water) ? StateTile.Water : StateTile.Land;
+                if (canChange && s != StateTile.Unseen)
+                {
+                    tile.terrain = GetTerrainEquivalent(s);
+                }
 
                 tile.objects = s;
 
                 map[coord.x, coord.y] = tile;
+            }
+        }
+
+
+        private StateTile GetTerrainEquivalent(StateTile tile)
+        {
+            switch(tile)
+            {
+                case StateTile.Water:
+                    return StateTile.Water;
+                
+                case StateTile.TheirHill:
+                    return StateTile.TheirHill;
+
+                case StateTile.MyHill:
+                    return StateTile.MyHill;
+
+                default:
+                    return StateTile.Land;
+
             }
         }
 

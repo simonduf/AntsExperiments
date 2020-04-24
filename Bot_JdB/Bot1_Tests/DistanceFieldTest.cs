@@ -47,6 +47,47 @@ namespace Bot1_Tests
             Assert.AreEqual(2, dut.GetDistance(0, 2));
         }
 
+        [TestMethod]
+        public void TestDropout()
+        {
+            PersistentGameState gameState = new PersistentGameState(5, 5);
+            DistanceField dut = new DistanceField(gameState, Tile.Food);
+
+            const Tile f = Tile.Food;
+            const Tile _ = Tile.Land;
+
+            Tile[,] map = new Tile[,]
+            {
+                {_,_,_,_,_},
+                {_,_,_,_,_},
+                {_,_,f,_,_},
+                {_,_,_,_,_},
+                {_,_,_,_,_}
+            };
+
+            gameState.Update(map);
+            dut.Propagate(5);
+
+            gameState.Update(new Tile[,]
+            {
+                {_,_,_,_,_},
+                {_,_,_,_,_},
+                {_,_,_,_,_},
+                {_,_,_,_,_},
+                {_,_,_,_,_}
+            });
+            dut.Propagate(1);
+
+            
+
+            Assert.AreEqual(DistanceField.Max, dut.GetDistance(2, 2));
+
+            Assert.AreEqual(DistanceField.Max, dut.GetDistance(3, 2));
+            Assert.AreEqual(DistanceField.Max, dut.GetDistance(4, 2));
+
+            
+        }
+
 
 
         [TestMethod]
@@ -471,16 +512,16 @@ namespace Bot1_Tests
             Assert.AreEqual(0, dut.GetDistance(2, 2));
 
             Assert.AreEqual(1, dut.GetDistance(3, 2));
-            Assert.AreEqual(1, dut.GetDistance(4, 2));
+            Assert.AreEqual(DistanceField.Max, dut.GetDistance(4, 2));
 
             Assert.AreEqual(1, dut.GetDistance(2, 3));
-            Assert.AreEqual(1, dut.GetDistance(2, 4));
+            Assert.AreEqual(DistanceField.Max, dut.GetDistance(2, 4));
 
             Assert.AreEqual(1, dut.GetDistance(2, 1));
-            Assert.AreEqual(1, dut.GetDistance(2, 0));
+            Assert.AreEqual(DistanceField.Max, dut.GetDistance(2, 0));
 
             Assert.AreEqual(1, dut.GetDistance(1, 2));
-            Assert.AreEqual(1, dut.GetDistance(0, 2));
+            Assert.AreEqual(DistanceField.Max, dut.GetDistance(0, 2));
 
             dut.Propagate(1);
 
@@ -581,6 +622,81 @@ namespace Bot1_Tests
 
             gameState.Update(map);
             dut.Propagate(20);
+
+            {
+                Vector2i r = dut.GetDescent(2, 5).First();
+                Assert.AreEqual(1, r.x);
+                Assert.AreEqual(0, r.y);
+            }
+
+            {
+                Vector2i r = dut.GetDescent(1, 5).First();
+                Assert.AreEqual(1, r.x);
+                Assert.AreEqual(0, r.y);
+            }
+        }
+
+        [TestMethod]
+        public void ProblemCase3_AntHills()
+        {
+            PersistentGameState gameState = new PersistentGameState(7, 10);
+            DistanceField dut = new DistanceField(gameState, Tile.TheirHill, terrain:true);
+
+            const Tile f = Tile.Food;
+            const Tile _ = Tile.Land;
+            const Tile w = Tile.Water;
+            const Tile h = Tile.TheirHill;
+            const Tile u = Tile.Unseen;
+
+            gameState.Update(new Tile[,]
+            {
+                {_,w,w,_,_,_,w},
+                {_,w,w,h,_,_,w},
+                {_,w,w,_,_,_,w},
+                {w,w,w,_,_,_,w},
+                {w,w,w,_,_,_,w},
+                {_,_,_,_,_,_,w},
+                {_,_,_,_,_,_,w},
+                {_,_,_,_,_,_,w},
+                {_,_,_,_,_,_,w},
+                {w,w,w,w,w,w,w},
+            });
+
+            dut.Propagate(20);
+
+            Assert.AreEqual(1, dut.GetDistance(3, 2));
+
+            {
+                Vector2i r = dut.GetDescent(2, 5).First();
+                Assert.AreEqual(1, r.x);
+                Assert.AreEqual(0, r.y);
+            }
+
+            {
+                Vector2i r = dut.GetDescent(1, 5).First();
+                Assert.AreEqual(1, r.x);
+                Assert.AreEqual(0, r.y);
+            }
+
+
+
+            gameState.Update(new Tile[,]
+            {
+                {_,w,w,_,_,_,w},
+                {_,w,w,u,_,_,w},
+                {_,w,w,_,_,_,w},
+                {w,w,w,_,_,_,w},
+                {w,w,w,_,_,_,w},
+                {_,_,_,_,_,_,w},
+                {_,_,_,_,_,_,w},
+                {_,_,_,_,_,_,w},
+                {_,_,_,_,_,_,w},
+                {w,w,w,w,w,w,w},
+            });
+
+            dut.Propagate(20);
+
+            Assert.AreEqual(1, dut.GetDistance(3, 2));
 
             {
                 Vector2i r = dut.GetDescent(2, 5).First();

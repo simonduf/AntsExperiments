@@ -8,7 +8,7 @@ namespace Ants
 {
     public class DistanceField
     {
-
+        public const int Max = int.MaxValue-5;
         private struct Tile
         {
             public int distance;
@@ -20,7 +20,8 @@ namespace Ants
         private static readonly Vector2i DOWN = new Vector2i(0, 1);
         private static readonly Vector2i LEFT = new Vector2i(-1, 0);
         private static readonly Vector2i RIGHT = new Vector2i(1, 0);
-        private static readonly Vector2i[] ALL_DIRECTIONS = new Vector2i[] { UP, DOWN, LEFT, RIGHT };
+        private static readonly Vector2i ZERO = new Vector2i(0, 0);
+        private static readonly Vector2i[] ALL_DIRECTIONS = new Vector2i[] { UP, DOWN, LEFT, RIGHT, ZERO};
 
         private Vector2i[] coords;
         private Tile[,] map;
@@ -52,6 +53,7 @@ namespace Ants
                 for(int i = 0; i < width; i++)
                 {
                     coords[i + j * width] = new Vector2i(i, j);
+                    map[i, j].distance = Max;
                 }
             }
 
@@ -95,7 +97,8 @@ namespace Ants
 
         public void UpdateLocked()
         {
-            
+            int count = 0;
+
             foreach (var coord in coords)
             {
                 int x = coord.x;
@@ -107,8 +110,18 @@ namespace Ants
 
                 map[x, y].isLocked = locked;
 
-                if(locked)
+                if (locked)
+                {
                     map[x, y].distance = 0;
+                    count++;
+                }
+
+            }
+
+            if(count == 0)
+            {
+                foreach (var coord in coords)
+                    map[coord.x, coord.y].distance = Max;
             }
         }
 
@@ -130,7 +143,7 @@ namespace Ants
                                 .Select(t => t.distance)
                                 .Min();
 
-                    scratch[coord.x, coord.y].distance = min + 1;
+                    scratch[coord.x, coord.y].distance = Math.Min(min + 1, Max);
                 }
 
                 
@@ -158,11 +171,7 @@ namespace Ants
 
         public Vector2i Wrap(Vector2i v)
         {
-            while (v.x < 0) v.x += width;
-            while (v.x >= width) v.x -= width;
-            while (v.y < 0) v.y += height;
-            while (v.y >= height) v.y -= height;
-            return v;
+            return Vector2i.Wrap(v, width, height);
         }
 
 

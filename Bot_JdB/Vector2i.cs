@@ -41,5 +41,14 @@ namespace Ants
 
             return result;
         }
+
+        public static Vector2i Wrap(Vector2i v, int width, int height)
+        {
+            while (v.x < 0) v.x += width;
+            while (v.x >= width) v.x -= width;
+            while (v.y < 0) v.y += height;
+            while (v.y >= height) v.y -= height;
+            return v;
+        }
     }
 }

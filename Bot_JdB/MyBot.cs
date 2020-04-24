@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using static Ants.Logger;
 
 
@@ -14,13 +15,17 @@ namespace Ants {
 
         private DistanceField exploration = null;
         private DistanceField food = null;
+        private DistanceField enemy = null;
+        private bool[,] occupied = null;
         int turn = 0;
 
-
-
-        int FoodRadius = 20;
+        int width;
+        int height;
 
         public override void DoTurn(IGameState state) {
+
+            width = state.Width;
+            height = state.Height;
 
             turn++;
 
@@ -33,7 +38,22 @@ namespace Ants {
             if (food == null)
                 food = new DistanceField(pState, Tile.Food);
 
+            if (enemy == null)
+                enemy = new DistanceField(pState, Tile.TheirHill, terrain: true);
 
+            if (occupied == null)
+                occupied = new bool[state.Width, state.Height];
+
+            /*
+            if (turn > 75)
+            {
+                //Log.Debug("Test");
+                //Log.Debug(pState.ToString(34 - 5, 89 - 5, 10, 10));
+                Log.Debug("Turn: " + turn);
+                Print(state.AllTiles, 34 - 5, 89 - 5, 10, 10, (data,i,j) => data[j,i].ToString());
+                //Print(state.AllTiles, 44 - 10, 54 - 10, 20, 20, (data, i, j) => data[j, i].ToString());
+            }
+            */
 
             try
             {
@@ -41,67 +61,26 @@ namespace Ants {
 
                 exploration.Propagate(5);
                 food.Propagate(5);
+                enemy.Propagate(5);
 
-                if (turn == 63)
-                    //Log.Debug(food.ToString(25,35,30,30));
-                    Log.Debug(pState.ToString(25, 35, 30, 30));
+                ClearOccupied();
 
-                //Log.Debug("Starting Turn " + turn++);// state.TimeRemaining
-                //FoodRadius = (int)Math.Sqrt(state.ViewRadius2);
-
-
-                //Calculate Enemy proximity
-                //var FoodProximity = calculateFoodProximity(state);
-                //var visibility = calculateVisibilityProximity(state);
 
                 foreach (Ant ant in state.MyAnts)
                 {
                     int x = ant.Col;
                     int y = ant.Row;
 
-                    // check if we have time left to calculate more orders
-                    //if (state.TimeRemaining < 10) break;
+                    
+                    if (enemy.GetDistance(x,y) < DistanceField.Max)
+                        MoveAnt(ant, enemy.GetDescent(x, y));
+                    else if (food.GetDistance(x, y) < exploration.GetDistance(x, y))
+                        MoveAnt(ant, food.GetDescent(x, y));
+                    else
+                        MoveAnt(ant, exploration.GetDescent(x, y));
 
 
-
-                    // General game signals
-                    // Defend hill -> converge + sacrifice self
-                    //continue if move done
-
-                    //Self ant todo:
-                    // (enemy>Ally) ? flee() :attack
-                    //continue if move done
-
-                    /*
-                    if (getFood(state, FoodProximity, ant))
-                        continue;
-
-
-                    explore(state, visibility, ant);
-                    */
-                    /*
-                    var tiles = state.AllTiles;
-
-                    float distance = float.MaxValue;
-                    Vector2 direction = Vector2.east;
-
-                    foreach(Location food in state.FoodTiles)
-                    {
-                        Vector2 dir = state.GetFromTo(ant, food);
-                        float mag = dir.magnitude;
-
-                        if(mag < distance)
-                        {
-                            distance = mag;
-                            direction = dir;
-                        }
-
-                    }
-                    */
-
-                    //IssueOrder(ant, Direction.South);
-                    IssueOrder(ant, GetDirection(food.GetDescent(x, y).FirstOrDefault()));
-
+                    
 
                 }
             }
@@ -111,6 +90,35 @@ namespace Ants {
             }
 
         }
+
+        private void ClearOccupied()
+        {
+            for(int i = 0; i < occupied.GetLength(0); i++)
+            {
+                for (int j = 0; j < occupied.GetLength(1); j++)
+                {
+                    occupied[i, j] = false;
+                }
+            }
+        }
+
+        private void MoveAnt(Ant ant, IEnumerable<Vector2i> moves)
+        {
+            Vector2i src = new Vector2i(ant.Col, ant.Row);
+
+            foreach(Vector2i move in moves)
+            {
+                Vector2i dst = Vector2i.Wrap(src + move, width, height);
+
+                if(!occupied[dst.x, dst.y])
+                {
+                    occupied[dst.x, dst.y] = true;
+                    IssueOrder(ant, GetDirection(move));
+                    return;
+                }
+            }
+        }
+
 
         public static Direction GetDirection(Vector2i v)
         {
@@ -124,7 +132,21 @@ namespace Ants {
             }
         }
 
-    
+        public static void Print<T>(T[,] data, int x, int y, int width, int height, Func<T[,], int, int, String> formater)
+        {
+            StringBuilder builder = new StringBuilder("Custom Print: \n");
+            for (int j = y; j < y + height; j++)
+            {
+                for (int i = x; i < x + width; i++)
+                {
+                    var tile = data[i, j];
+                    builder.Append(formater(data, i, j) + "\t");
+                }
+                builder.Append("\n");
+            }
+
+            Log.Debug(builder.ToString());
+        }
 
 
         public static void Main (string[] args) {
