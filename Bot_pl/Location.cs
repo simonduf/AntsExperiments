@@ -40,13 +40,29 @@ namespace Ants {
 			return other.Row == this.Row && other.Col == this.Col;
 		}
 
+		public static bool operator ==(Location a, Location b)
+		{
+            return a is null ?
+                b is null :
+                a.Equals(b);
+		}
+		public static bool operator !=(Location a, Location b)
+		{
+			return !(a==b);
+		}
+
 		public override int GetHashCode()
 		{
 			unchecked {
 				return (this.Row * 397) ^ this.Col;
 			}
 		}
-	}
+
+        public override string ToString()
+        {
+            return $"[{this.Row},{this.Col}]";
+        }
+    }
 
 	public class TeamLocation : Location, IEquatable<TeamLocation> {
 		/// <summary>
@@ -72,10 +88,18 @@ namespace Ants {
 			}
 		}
 	}
-	
+
 	public class Ant : TeamLocation, IEquatable<Ant> {
-		public Ant (int row, int col, int team) : base (row, col, team) {
+		public Ant(int row, int col, int team) : base(row, col, team) {
+			HasOrder = false;
 		}
+
+		public bool HasOrder { get; set; }
+
+        public bool IsAt(Location location)
+        {
+			return this as Location == location;
+        }
 
 		public bool Equals (Ant other) {
 			return base.Equals (other);

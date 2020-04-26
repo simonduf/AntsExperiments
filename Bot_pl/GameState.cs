@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using static Ants.Logger;
 
 namespace Ants {
@@ -162,6 +163,11 @@ namespace Ants {
             return map[location.Row, location.Col] != Tile.Water;
         }
 
+        public bool IsGuaranteedPassable(Location location)
+        {
+            return GetIsPassable(location) && map[location.Row, location.Col] != Tile.Unseen;
+        }
+
         /// <summary>
         /// Gets whether <paramref name="location"/> is occupied or not.
         /// </summary>
@@ -188,6 +194,18 @@ namespace Ants {
 
             return new Location(row, col);
         }
+        public Location GetDestination(Location location, Direction8 direction)
+        {
+            Location delta = Ants.Aim8[direction];
+
+            int row = (location.Row + delta.Row) % Height;
+            if (row < 0) row += Height; // because the modulo of a negative number is negative
+
+            int col = (location.Col + delta.Col) % Width;
+            if (col < 0) col += Width;
+
+            return new Location(row, col);
+        }
 
 
         void WrapAround(ref int row, ref int col)
@@ -205,7 +223,8 @@ namespace Ants {
         /// <param name="loc1">The first location to measure with.</param>
         /// <param name="loc2">The second location to measure with.</param>
         /// <returns>The distance between <paramref name="loc1"/> and <paramref name="loc2"/></returns>
-        public int GetDistance(Location loc1, Location loc2) {
+        public int GetDistance(Location loc1, Location loc2)
+        {
             int d_row = Math.Abs(loc1.Row - loc2.Row);
             d_row = Math.Min(d_row, Height - d_row);
 
@@ -213,6 +232,16 @@ namespace Ants {
             d_col = Math.Min(d_col, Width - d_col);
 
             return d_row + d_col;
+        }
+        public int GetRealDistance2(Location loc1, Location loc2)
+        {
+            int d_row = Math.Abs(loc1.Row - loc2.Row);
+            d_row = Math.Min(d_row, Height - d_row);
+
+            int d_col = Math.Abs(loc1.Col - loc2.Col);
+            d_col = Math.Min(d_col, Width - d_col);
+
+            return d_row * d_row + d_col * d_col;
         }
 
         /// <summary>
@@ -321,6 +350,55 @@ namespace Ants {
 
         }
 
-	}
+        public bool FindClosest(Location origin, IEnumerable<Location> candidates, out Location closestCandidate, out List<Direction> path, int maxDistance = -1)
+        {
+            if (maxDistance == -1)
+            {
+                // Default max distance is view radius and then some
+                maxDistance = (int) Math.Sqrt(this.ViewRadius2) + 2;
+            }
+            var currentReach = new List<Location>() { origin };
+            var paths = new Dictionary<Location, List<Direction>>() { { origin, new List<Direction>() } };
+
+            // Propagate from target
+            for (int i = 0; i < maxDistance; i++)
+            {
+                var nextReach = new List<Location>();
+                // For each tile on current edge
+                foreach (var location in currentReach)
+                {
+                    // In each direction
+                    foreach (Direction direction in Enum.GetValues(typeof(Direction)))
+                    {
+                        var nextStep = this.GetDestination(location, direction);
+                        if (candidates.Contains(nextStep))
+                        {
+                            // Found the winner
+                            path = new List<Direction>(paths[location])
+                            {
+                                direction
+                            };
+                            closestCandidate = nextStep;
+                            return true;
+                        }
+                        if (!paths.ContainsKey(nextStep) && this.IsGuaranteedPassable(nextStep))
+                        {
+                            nextReach.Add(nextStep);
+                            var newPath = new List<Direction>(paths[location]);
+                            newPath.Add(direction);
+                            paths.Add(nextStep, newPath);
+                        }
+                    }
+                }
+                currentReach = nextReach;
+            }
+
+            // Not found
+            path = new List<Direction>();
+            closestCandidate = origin;
+            return false;
+        }
+
+    }
 }
 

@@ -108,6 +108,7 @@ namespace Ants {
 		/// <param name="direction">The direction to move.</param>
 		/// <returns>The new location, accounting for wrap around.</returns>
 		Location GetDestination (Location location, Direction direction);
+		Location GetDestination(Location location, Direction8 direction);
 
 		/// <summary>
 		/// Gets the distance between <paramref name="loc1"/> and <paramref name="loc2"/>.
@@ -116,6 +117,7 @@ namespace Ants {
 		/// <param name="loc2">The second location to measure with.</param>
 		/// <returns>The distance between <paramref name="loc1"/> and <paramref name="loc2"/></returns>
 		int GetDistance (Location loc1, Location loc2);
+		int GetRealDistance2(Location loc1, Location loc2);
 
 		/// <summary>
 		/// Gets the closest directions to get from <paramref name="loc1"/> to <paramref name="loc2"/>.
@@ -125,8 +127,13 @@ namespace Ants {
 		/// <returns>The 1 or 2 closest directions from <paramref name="loc1"/> to <paramref name="loc2"/></returns>
 		ICollection<Direction> GetDirections (Location loc1, Location loc2);
 
+        // JdB
 		bool GetIsVisible(Location loc);
         void CalculateVisibility();
 
-    }
+		// PL
+        // Finds candidate reachable from target with the shortest path
+		bool FindClosest(Location origin, IEnumerable<Location> candidates, out Location closestCandidate, out List<Direction> path, int maxDistance = -1);
+
+	}
 }
