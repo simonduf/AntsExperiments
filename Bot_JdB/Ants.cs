@@ -37,6 +37,7 @@ namespace Ants {
 					
 					if (line.Equals(READY)) {
 						ParseSetup(input);
+						bot.Initialize(state);
 						FinishTurn();
 						input.Clear();
 					} else if (line.Equals(GO)) {

@@ -85,7 +85,9 @@ namespace Ants {
 		public GameState (int width, int height, 
 		                  int turntime, int loadtime, 
 		                  int viewradius2, int attackradius2, int spawnradius2) {
-			
+
+			Log.Debug(attackradius2);
+
 			Width = width;
 			Height = height;
 			
@@ -103,7 +105,7 @@ namespace Ants {
 			DeadTiles = new List<Location>();
 			FoodTiles = new List<Location>();
 			
-
+			
 
 			map = new Tile[width, height];
 			coords = new Vector2i[width * height];
@@ -203,21 +205,17 @@ namespace Ants {
 		public void CalculateVisibility()
 		{
 			
-				
-
 			foreach (Ant ant in this.MyAnts)
 			{
-				foreach (Location offset in Offsets)
+				foreach (Vector2i offset in Offsets)
 				{
-					int col = ant.Col + offset.Col;
-					int row = ant.Row + offset.Row;
+					Vector2i pos = ant.position + offset;
+					pos = Vector2i.Wrap(pos, Width, Height);
 
-					WrapAround(ref row, ref col);
+					map[pos.x, pos.y].isVisible = true;
 
-					map[col, row].isVisible = true;
-
-					if (map[col, row].terrain == Terrain.Unknown)
-						map[col, row].terrain = Terrain.Land;
+					if (map[pos.x, pos.y].terrain == Terrain.Unknown)
+						map[pos.x, pos.y].terrain = Terrain.Land;
 				}
 			}
 
@@ -301,14 +299,14 @@ namespace Ants {
 
 		}
 
-		private List<Location> offsets;
-		public List<Location> Offsets
+		private List<Vector2i> offsets;
+		public List<Vector2i> Offsets
 		{
 			get
 			{
 				if (offsets == null)
 				{
-					offsets = new List<Location>();
+					offsets = new List<Vector2i>();
 					int squares = (int)Math.Floor(Math.Sqrt(this.ViewRadius2));
 					for (int r = -1 * squares; r <= squares; ++r)
 					{
@@ -317,7 +315,7 @@ namespace Ants {
 							int square = r * r + c * c;
 							if (square < this.ViewRadius2)
 							{
-								offsets.Add(new Location(r, c));
+								offsets.Add(new Vector2i(c, r));
 							}
 						}
 					}

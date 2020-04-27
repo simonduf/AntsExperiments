@@ -16,6 +16,11 @@ namespace Ants
             this.y = y;
         }
 
+        public bool Equals(Vector2i other)
+        {
+            return x == other.x && y == other.y;
+        }
+
         public static  Vector2i operator +(Vector2i a, Vector2i b)
         {
             a.x += b.x;

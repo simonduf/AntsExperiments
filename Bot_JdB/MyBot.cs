@@ -10,42 +10,43 @@ namespace Ants {
 
     class MyBot : Bot {
 
-
-
         private DistanceField exploration = null;
         private DistanceField food = null;
         private DistanceField enemy = null;
         private bool[,] occupied = null;
+        
+
         int turn = 0;
+
+
 
         int width;
         int height;
 
-        public override void DoTurn(GameState state) {
 
+        public override void Initialize(GameState state)
+        {
             width = state.Width;
             height = state.Height;
 
-            turn++;
+            exploration = new DistanceField(state, tile => tile.terrain == GameState.Terrain.Unknown);
+            food = new DistanceField(state, tile => tile.isFood);
+            enemy = new DistanceField(state, tile => tile.isEnemyHill);
 
-
-            if (exploration == null)
-                exploration = new DistanceField(state, tile => tile.terrain == GameState.Terrain.Unknown);
-
-            if (food == null)
-                food = new DistanceField(state, tile => tile.isFood);
-
-            if (enemy == null)
-                enemy = new DistanceField(state, tile => tile.isEnemyHill);
-
-            if (occupied == null)
-                occupied = new bool[state.Width, state.Height];
+            occupied = new bool[state.Width, state.Height];
 
             
 
+
+        }
+
+        public override void DoTurn(GameState state) {
+            
+
+
             try
             {
-
+                turn++;
 
                 exploration.Propagate(2);
                 food.Propagate(2);
@@ -56,13 +57,13 @@ namespace Ants {
 
                 foreach (Ant ant in state.MyAnts)
                 {
-                    int x = ant.Col;
-                    int y = ant.Row;
+                    int x = ant.position.x;
+                    int y = ant.position.y;
 
                     
                     if (food.GetDistance(x, y) < 10)
                         MoveAnt(ant, food.GetDescent(x, y));
-                    else if (enemy.GetDistance(x, y) < DistanceField.Max)
+                    else if (enemy.GetDistance(x, y) < 10)
                         MoveAnt(ant, enemy.GetDescent(x, y));
                     else
                         MoveAnt(ant, exploration.GetDescent(x, y));
@@ -89,7 +90,7 @@ namespace Ants {
 
         private void MoveAnt(Ant ant, IEnumerable<Vector2i> moves)
         {
-            Vector2i src = new Vector2i(ant.Col, ant.Row);
+            Vector2i src = ant.position;
 
             foreach(Vector2i move in moves)
             {
@@ -98,7 +99,8 @@ namespace Ants {
                 if(!occupied[dst.x, dst.y])
                 {
                     occupied[dst.x, dst.y] = true;
-                    IssueOrder(ant, GetDirection(move));
+                    IssueOrder(ant.position, GetDirection(move));
+                    ant.hasMoved = true;
                     return;
                 }
             }
@@ -107,6 +109,9 @@ namespace Ants {
 
         public static Direction GetDirection(Vector2i v)
         {
+            if (v.x == 0 && v.y == 0)
+                return Direction.Halt;
+
             if (Math.Abs(v.x) > Math.Abs(v.y))
             {
                 return v.x > 0.0f ? Direction.East : Direction.West;

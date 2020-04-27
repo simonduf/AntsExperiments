@@ -6,7 +6,8 @@ namespace Ants {
 		North,
 		South,
 		East,
-		West
+		West,
+		Halt
 	}
 
 	public static class DirectionExtensions {

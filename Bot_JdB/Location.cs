@@ -73,12 +73,22 @@ namespace Ants {
 		}
 	}
 	
-	public class Ant : TeamLocation, IEquatable<Ant> {
-		public Ant (int row, int col, int team) : base (row, col, team) {
+	public class Ant : IEquatable<Ant> {
+
+		public bool hasMoved;
+		public int team;
+		public Vector2i position;
+		
+
+		public Ant (int row, int col, int team)
+		{
+			this.hasMoved = false;
+			this.team = team;
+			this.position = new Vector2i(col, row);
 		}
 
 		public bool Equals (Ant other) {
-			return base.Equals (other);
+			return position.Equals(other.position);
 		}
 	}
 
