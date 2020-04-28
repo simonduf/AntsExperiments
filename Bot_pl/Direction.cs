@@ -4,31 +4,98 @@ namespace Ants {
 
 	public enum Direction {
 		North,
-		South,
 		East,
-		West
-	}
+        South,
+        West
+    }
+
+    public enum Direction8
+    {
+        North = Direction.North,
+        South = Direction.South,
+        East = Direction.East,
+        West = Direction.West,
+        NorthEast,
+        SouthEast,
+        SouthWest,
+        NorthWest
+    }
 
 	public static class DirectionExtensions {
 
 		public static char ToChar (this Direction self) {
-			switch (self)
-			{
-				case Direction.East:
-					return 'e';
+            return self switch
+            {
+                Direction.East => 'e',
+                Direction.North => 'n',
+                Direction.South => 's',
+                Direction.West => 'w',
+                _ => throw new ArgumentException("Unknown direction", "self"),
+            };
+        }
 
-				case Direction.North:
-					return 'n';
+        public static Direction Clockwise(this Direction self)
+        {
+            return self switch
+            {
+                Direction.East => Direction.South,
+                Direction.North => Direction.East,
+                Direction.South => Direction.West,
+                Direction.West => Direction.North,
+                _ => throw new ArgumentException("Unknown direction", "self"),
+            };
+        }
 
-				case Direction.South:
-					return 's';
+        public static Direction CounterClockwise(this Direction self)
+        {
+            return self.Clockwise().Flip();
+        }
 
-				case Direction.West:
-					return 'w';
+        public static Direction Flip (this Direction self)
+        {
+            return self switch
+            {
+                Direction.East => Direction.West,
+                Direction.North => Direction.South,
+                Direction.South => Direction.North,
+                Direction.West => Direction.East,
+                _ => throw new ArgumentException("Unknown direction", "self"),
+            };
+        }
+	}
 
-				default:
-					throw new ArgumentException ("Unknown direction", "self");
-			}
-		}
+    public static class Direction8Extensions
+    {
+		public static Direction8 Clockwise45(this Direction8 self)
+		{
+            return self switch
+            {
+                Direction8.East => Direction8.SouthEast,
+                Direction8.SouthEast => Direction8.South,
+                Direction8.South => Direction8.SouthWest,
+                Direction8.SouthWest => Direction8.West,
+                Direction8.West => Direction8.NorthWest,
+                Direction8.NorthWest => Direction8.North,
+                Direction8.North => Direction8.NorthEast,
+                Direction8.NorthEast => Direction8.East,
+                _ => throw new ArgumentException("Unknown direction", "self"),
+            };
+        }
+
+        public static Direction Clockwise45IfDiagonal(this Direction8 self)
+        {
+            return self switch
+            {
+                Direction8.NorthEast => Direction.East,
+                Direction8.East => Direction.East,
+                Direction8.SouthEast => Direction.South,
+                Direction8.South => Direction.South,
+                Direction8.SouthWest => Direction.West,
+                Direction8.West => Direction.West,
+                Direction8.NorthWest => Direction.North,
+                Direction8.North => Direction.North,
+                _ => throw new ArgumentException("Unknown direction", "self"),
+            };
+        }
 	}
 }

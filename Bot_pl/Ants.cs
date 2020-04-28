@@ -6,19 +6,34 @@ using static Ants.Logger;
 namespace Ants {
 
 	public class Ants {
-		
+
 		public static readonly Location North = new Location(-1, 0);
 		public static readonly Location South = new Location(1, 0);
 		public static readonly Location West = new Location(0, -1);
 		public static readonly Location East = new Location(0, 1);
-		
+		public static readonly Location NorthWest = new Location(-1, -1);
+		public static readonly Location SouthWest = new Location(1, -1);
+		public static readonly Location NorthEast = new Location(-1, 1);
+		public static readonly Location SouthEast = new Location(1, 1);
+
 		public static IDictionary<Direction, Location> Aim = new Dictionary<Direction, Location> {
 			{ Direction.North, North},
 			{ Direction.East, East},
 			{ Direction.South, South},
 			{ Direction.West, West}
 		};
-		
+
+		public static IDictionary<Direction8, Location> Aim8 = new Dictionary<Direction8, Location> {
+			{ Direction8.North, North},
+			{ Direction8.East, East},
+			{ Direction8.South, South},
+			{ Direction8.West, West},
+			{ Direction8.NorthWest, NorthWest},
+			{ Direction8.SouthWest, SouthWest},
+			{ Direction8.NorthEast, NorthEast},
+			{ Direction8.SouthEast, SouthEast}
+		};
+
 		private const string READY = "ready";
 		private const string GO = "go";
 		private const string END = "end";
