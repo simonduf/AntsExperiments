@@ -189,6 +189,10 @@ namespace Ants
         private bool IsPositionValid(int id)
         {
             Vector2i position = graph.GetProjectedPosition(id);
+
+            if (!map[position.x, position.y].isLand)
+                return false;
+            
             bool available = true;
             for (int j = 0; j < ours.Count; j++)
             {

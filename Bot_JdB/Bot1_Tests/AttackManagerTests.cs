@@ -332,6 +332,63 @@ namespace Bot1_Tests
             }
         }
 
+        [TestMethod]
+        public void TestNoWater_1()
+        {
+            GameState state = new GameState(10, 10, 1, 1, 1, 5, 1);
+
+            state.Set(new Tile[,]
+            {
+                {_,_,_,_,_,_,_,_,_,_},
+                {_,_,_,_,_,_,_,_,_,_},
+                {_,_,_,_,a,_,_,_,_,_},
+                {_,_,_,w,w,w,_,_,_,_},
+                {_,_,_,_,_,_,_,_,_,_},
+                {_,_,_,_,A,_,_,_,_,_},
+                {_,_,_,_,_,_,_,_,_,_},
+                {_,_,_,_,_,_,_,_,_,_},
+                {_,_,_,_,_,_,_,_,_,_},
+                {_,_,_,_,_,_,_,_,_,_},
+            });
+
+            AttackManager dut = new AttackManager(state);
+
+            dut.MoveOffensive(state);
+
+            Assert.IsTrue(state.MyAnts[0].hasMoved);
+            Assert.AreNotEqual(Direction.South, state.MyAnts[0].direction);
+            
+        }
+
+
+        [TestMethod]
+        public void TestNoWater_2()
+        {
+            GameState state = new GameState(10, 10, 1, 1, 1, 5, 1);
+
+            state.Set(new Tile[,]
+            {
+                {_,_,_,_,_,_,_,_,_,_},
+                {_,_,_,_,_,_,_,_,_,_},
+                {_,_,_,_,_,_,_,_,_,_},
+                {_,_,_,w,w,_,_,_,_,_},
+                {_,_,_,a,w,_,A,_,_,_},
+                {_,_,_,w,w,_,_,_,_,_},
+                {_,_,_,_,_,_,_,_,_,_},
+                {_,_,_,_,_,_,_,_,_,_},
+                {_,_,_,_,_,_,_,_,_,_},
+                {_,_,_,_,_,_,_,_,_,_},
+            });
+
+            AttackManager dut = new AttackManager(state);
+
+            dut.MoveOffensive(state);
+
+            Assert.IsTrue(state.MyAnts[0].hasMoved);
+            Assert.AreEqual(Direction.West, state.MyAnts[0].direction);
+
+        }
+
 
     }
 
