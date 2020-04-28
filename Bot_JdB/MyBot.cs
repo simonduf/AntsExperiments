@@ -8,7 +8,7 @@ using static Ants.Logger;
 
 namespace Ants {
 
-    class MyBot : Bot {
+    public class MyBot : Bot {
 
         //
         //  Configuration
@@ -51,22 +51,29 @@ namespace Ants {
 
         }
 
+        
+        public void Cook(GameState state)
+        {
+            turn++;
+
+            explorationMap.Increment();
+            explorationMap.ZeroOutVisible(v => state.map[v.x, v.y].isVisible);
+
+            exploration.Propagate(2);
+            food.Propagate(2);
+            enemy.Propagate(2);
+
+        }
+
         public override void DoTurn(GameState state) {
             
 
 
             try
             {
-                turn++;
+                Cook(state);
 
                 attackManager.MoveOffensive(state);
-
-                explorationMap.Increment();
-                explorationMap.ZeroOutVisible(v => state.map[v.x, v.y].isVisible);
-
-                exploration.Propagate(2);
-                food.Propagate(2);
-                enemy.Propagate(2);
 
                 ClearOccupied();
 
