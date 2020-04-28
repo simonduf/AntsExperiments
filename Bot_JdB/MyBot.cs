@@ -14,7 +14,7 @@ namespace Ants {
         private DistanceField food = null;
         private DistanceField enemy = null;
         private bool[,] occupied = null;
-        
+        private AttackManager attackManager;
 
         int turn = 0;
 
@@ -35,7 +35,7 @@ namespace Ants {
 
             occupied = new bool[state.Width, state.Height];
 
-            
+            attackManager = new AttackManager(state);
 
 
         }
@@ -48,27 +48,42 @@ namespace Ants {
             {
                 turn++;
 
+                attackManager.MoveOffensive(state);
+
                 exploration.Propagate(2);
                 food.Propagate(2);
                 enemy.Propagate(2);
 
                 ClearOccupied();
 
+                foreach (Ant ant in state.MyAnts)
+                {
+                    if (ant.hasMoved)
+                        occupied[ant.position.x, ant.position.y] = true;
+                }
+                
 
                 foreach (Ant ant in state.MyAnts)
                 {
+                    if (ant.hasMoved)
+                        continue;
+
                     int x = ant.position.x;
                     int y = ant.position.y;
 
                     
                     if (food.GetDistance(x, y) < 10)
                         MoveAnt(ant, food.GetDescent(x, y));
-                    else if (enemy.GetDistance(x, y) < 10)
+                    else if (enemy.GetDistance(x, y) < DistanceField.Max)
                         MoveAnt(ant, enemy.GetDescent(x, y));
                     else
                         MoveAnt(ant, exploration.GetDescent(x, y));
 
                 }
+
+
+                foreach (Ant ant in state.MyAnts)
+                    IssueOrder(ant.position, ant.direction);
             }
             catch (Exception e)
             {
@@ -99,7 +114,7 @@ namespace Ants {
                 if(!occupied[dst.x, dst.y])
                 {
                     occupied[dst.x, dst.y] = true;
-                    IssueOrder(ant.position, GetDirection(move));
+                    ant.direction = GetDirection(move);
                     ant.hasMoved = true;
                     return;
                 }

@@ -16,12 +16,8 @@ namespace Ants
             public bool isLocked;
         }
 
-        private static readonly Vector2i UP = new Vector2i(0, -1);
-        private static readonly Vector2i DOWN = new Vector2i(0, 1);
-        private static readonly Vector2i LEFT = new Vector2i(-1, 0);
-        private static readonly Vector2i RIGHT = new Vector2i(1, 0);
-        private static readonly Vector2i ZERO = new Vector2i(0, 0);
-        private static readonly Vector2i[] ALL_DIRECTIONS = new Vector2i[] { UP, DOWN, LEFT, RIGHT, ZERO};
+
+        
 
         private Vector2i[] coords;
         private Tile[,] map;
@@ -133,7 +129,7 @@ namespace Ants
                 if (!tile.isLocked && tile.isLand)
                 {
 
-                    int min = ALL_DIRECTIONS
+                    int min = Vector2i.AllDirections
                                 .Select(direction => Wrap(coord + direction))
                                 .Select(sum => map[sum.x, sum.y])
                                 .Where(t => t.isLand)
@@ -176,7 +172,7 @@ namespace Ants
         {
             Vector2i coord = new Vector2i(x, y);
 
-            return ALL_DIRECTIONS
+            return Vector2i.AllDirections
                                 .Select(direction => Wrap(coord + direction))
                                 .Where(sum => map[sum.x, sum.y].isLand)
                                 .OrderBy(sum => map[sum.x, sum.y].distance)
@@ -188,7 +184,7 @@ namespace Ants
         {
             Vector2i coord = new Vector2i(x, y);
 
-            return ALL_DIRECTIONS
+            return Vector2i.AllDirections
                                 .Select(direction => Wrap(coord + direction))
                                 .Where(sum => map[sum.x, sum.y].isLand)
                                 .OrderByDescending(sum => map[sum.x, sum.y].distance)

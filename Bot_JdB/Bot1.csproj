@@ -68,6 +68,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Ants.cs" />
+    <Compile Include="AttackGraph.cs" />
     <Compile Include="AttackManager.cs" />
     <Compile Include="Bot.cs" />
     <Compile Include="DistanceField.cs" />
@@ -78,6 +79,7 @@
     <Compile Include="Location.cs" />
     <Compile Include="MyBot.cs" />
     <Compile Include="PersistentGameState.cs" />
+    <Compile Include="TacticalMap.cs" />
     <Compile Include="Tile.cs" />
     <Compile Include="Vector2.cs" />
     <Compile Include="Vector2i.cs" />

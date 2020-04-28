@@ -76,6 +76,8 @@ namespace Ants {
 	public class Ant : IEquatable<Ant> {
 
 		public bool hasMoved;
+		public Direction direction;
+
 		public int team;
 		public Vector2i position;
 		

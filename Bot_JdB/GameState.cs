@@ -79,7 +79,7 @@ namespace Ants {
 		}
 
 
-		public Vector2i[] coords;
+		public List<Vector2i> coords;
 		public Tile[,] map;
 		
 		public GameState (int width, int height, 
@@ -108,16 +108,10 @@ namespace Ants {
 			
 
 			map = new Tile[width, height];
-			coords = new Vector2i[width * height];
+			coords = Vector2i.GenerateCoords(Vector2i.Zero, new Vector2i(width, height));
 
-			for (int i = 0; i < width; i++)
-			{
-				for (int j = 0; j < height; j++)
-				{
-					coords[i + j * width] = new Vector2i(i, j);
-					map[i, j] = defaultTile;
-				}
-			}
+			foreach (var coord in coords)
+				map[coord.x, coord.y] = defaultTile;
 
 		}
 
@@ -304,10 +298,12 @@ namespace Ants {
 		{
 			get
 			{
+				
 				if (offsets == null)
 				{
-					offsets = new List<Vector2i>();
-					int squares = (int)Math.Floor(Math.Sqrt(this.ViewRadius2));
+					offsets = Vector2i.GenerateCircle(this.ViewRadius2);
+					
+					/*
 					for (int r = -1 * squares; r <= squares; ++r)
 					{
 						for (int c = -1 * squares; c <= squares; ++c)
@@ -319,6 +315,8 @@ namespace Ants {
 							}
 						}
 					}
+					*/
+					
 				}
 				return offsets;
 			}

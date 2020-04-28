@@ -57,5 +57,23 @@ namespace Bot1_Tests
             Assert.AreEqual(-1, result.y);
         }
 
+        [TestMethod]
+        public void TestEquals()
+        {
+            Vector2i a = new Vector2i(1, 2);
+            Vector2i b = new Vector2i(1, 2);
+            Vector2i c = new Vector2i(1, 3);
+            object d = new Vector2i(1, 2);
+            object e = new Vector2i(1, 3);
+            object f = 5.0f;
+
+
+            Assert.AreEqual(a, b);
+            Assert.AreNotEqual(a, c);
+            Assert.AreEqual(a, d);
+            Assert.AreNotEqual(a, e);
+            Assert.AreNotEqual(a, f);
+        }
+
     }
 }
