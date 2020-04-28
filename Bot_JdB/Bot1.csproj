@@ -72,6 +72,7 @@
     <Compile Include="AttackManager.cs" />
     <Compile Include="Bot.cs" />
     <Compile Include="DistanceField.cs" />
+    <Compile Include="ExplorationMap.cs" />
     <Compile Include="Logging.cs" />
     <Compile Include="Direction.cs" />
     <Compile Include="GameState.cs" />

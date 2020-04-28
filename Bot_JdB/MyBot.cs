@@ -10,11 +10,20 @@ namespace Ants {
 
     class MyBot : Bot {
 
-        private DistanceField exploration = null;
-        private DistanceField food = null;
-        private DistanceField enemy = null;
+        //
+        //  Configuration
+        //
+        private static int Reexploration = 50;
+        private static int DistanceToNest = 20;
+        private static int DistanceToFood = 10;
+
+        private DistanceField<GameState.Tile> food = null;
+        private DistanceField<GameState.Tile> enemy = null;
         private bool[,] occupied = null;
         private AttackManager attackManager;
+
+        private DistanceField<int> exploration = null;
+        private ExplorationMap explorationMap;
 
         int turn = 0;
 
@@ -29,14 +38,16 @@ namespace Ants {
             width = state.Width;
             height = state.Height;
 
-            exploration = new DistanceField(state, tile => tile.terrain == GameState.Terrain.Unknown);
-            food = new DistanceField(state, tile => tile.isFood);
-            enemy = new DistanceField(state, tile => tile.isEnemyHill);
+            
+            food = new DistanceField<GameState.Tile>(state, state.map, tile => tile.isFood);
+            enemy = new DistanceField<GameState.Tile>(state, state.map, tile => tile.isEnemyHill);
 
             occupied = new bool[state.Width, state.Height];
 
             attackManager = new AttackManager(state);
 
+            explorationMap = new ExplorationMap(state.Width, state.Height);
+            exploration = new DistanceField<int>(state, explorationMap.map, tile => tile > Reexploration);
 
         }
 
@@ -49,6 +60,9 @@ namespace Ants {
                 turn++;
 
                 attackManager.MoveOffensive(state);
+
+                explorationMap.Increment();
+                explorationMap.ZeroOutVisible(v => state.map[v.x, v.y].isVisible);
 
                 exploration.Propagate(2);
                 food.Propagate(2);
@@ -77,9 +91,9 @@ namespace Ants {
                     int y = ant.position.y;
 
                     
-                    if (food.GetDistance(x, y) < 10)
+                    if (food.GetDistance(x, y) < DistanceToFood)
                         MoveAnt(ant, food.GetDescent(x, y));
-                    else if (enemy.GetDistance(x, y) < 20)
+                    else if (enemy.GetDistance(x, y) < DistanceToNest)
                         MoveAnt(ant, enemy.GetDescent(x, y));
                     else
                         MoveAnt(ant, exploration.GetDescent(x, y));

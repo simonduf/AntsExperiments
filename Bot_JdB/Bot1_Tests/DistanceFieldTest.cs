@@ -17,7 +17,7 @@ namespace Bot1_Tests
         public void TestBasic()
         {
             GameState gameState = TestGameState(5, 5);
-            DistanceField dut = new DistanceField(gameState, tile => tile.isFood);
+            DistanceField<GameState.Tile> dut = new DistanceField<GameState.Tile>(gameState, gameState.map, tile => tile.isFood);
 
             const Tile f = Tile.Food;
             const Tile _ = Tile.Land;
@@ -56,7 +56,7 @@ namespace Bot1_Tests
         public void TestDropout()
         {
             GameState gameState = TestGameState(5, 5);
-            DistanceField dut = new DistanceField(gameState, tile => tile.isFood);
+            DistanceField<GameState.Tile> dut = new DistanceField<GameState.Tile>(gameState, gameState.map, tile => tile.isFood);
 
             const Tile f = Tile.Food;
             const Tile _ = Tile.Land;
@@ -83,10 +83,10 @@ namespace Bot1_Tests
 
             
 
-            Assert.AreEqual(DistanceField.Max, dut.GetDistance(2, 2));
+            Assert.AreEqual(DistanceField<GameState.Tile>.Max, dut.GetDistance(2, 2));
 
-            Assert.AreEqual(DistanceField.Max, dut.GetDistance(3, 2));
-            Assert.AreEqual(DistanceField.Max, dut.GetDistance(4, 2));
+            Assert.AreEqual(DistanceField<GameState.Tile>.Max, dut.GetDistance(3, 2));
+            Assert.AreEqual(DistanceField<GameState.Tile>.Max, dut.GetDistance(4, 2));
 
             
         }
@@ -97,7 +97,7 @@ namespace Bot1_Tests
         public void TestBasic_NotSquare()
         {
             GameState gameState = TestGameState(7, 5);
-            DistanceField dut = new DistanceField(gameState, tile => tile.isFood);
+            DistanceField<GameState.Tile> dut = new DistanceField<GameState.Tile>(gameState, gameState.map, tile => tile.isFood);
 
             const Tile f = Tile.Food;
             const Tile _ = Tile.Land;
@@ -136,7 +136,7 @@ namespace Bot1_Tests
         public void TestWrap()
         {
             GameState gameState = TestGameState(7, 5);
-            DistanceField dut = new DistanceField(gameState, tile => tile.isFood);
+            DistanceField<GameState.Tile> dut = new DistanceField<GameState.Tile>(gameState, gameState.map, tile => tile.isFood);
 
             const Tile f = Tile.Food;
             const Tile _ = Tile.Land;
@@ -165,7 +165,7 @@ namespace Bot1_Tests
         public void TestWater()
         {
             GameState gameState = TestGameState(7, 5);
-            DistanceField dut = new DistanceField(gameState, tile => tile.isFood);
+            DistanceField<GameState.Tile> dut = new DistanceField<GameState.Tile>(gameState, gameState.map, tile => tile.isFood);
 
             const Tile f = Tile.Food;
             const Tile _ = Tile.Land;
@@ -195,7 +195,7 @@ namespace Bot1_Tests
         public void TestDescent()
         {
             GameState gameState = TestGameState(7, 5);
-            DistanceField dut = new DistanceField(gameState, tile => tile.isFood);
+            DistanceField<GameState.Tile> dut = new DistanceField<GameState.Tile>(gameState, gameState.map, tile => tile.isFood);
 
             const Tile f = Tile.Food;
             const Tile _ = Tile.Land;
@@ -256,7 +256,7 @@ namespace Bot1_Tests
         public void TestAscent()
         {
             GameState gameState = TestGameState(7, 5);
-            DistanceField dut = new DistanceField(gameState, tile => tile.isFood);
+            DistanceField<GameState.Tile> dut = new DistanceField<GameState.Tile>(gameState, gameState.map, tile => tile.isFood);
 
             const Tile f = Tile.Food;
             const Tile _ = Tile.Land;
@@ -306,7 +306,7 @@ namespace Bot1_Tests
         public void Exploration1()
         {
             GameState gameState = TestGameState(7, 10);
-            DistanceField dut = new DistanceField(gameState, tile => tile.terrain == GameState.Terrain.Unknown);
+            DistanceField<GameState.Tile> dut = new DistanceField<GameState.Tile>(gameState, gameState.map, tile => tile.terrain == GameState.Terrain.Unknown);
 
             const Tile u = Tile.Unseen;
             const Tile f = Tile.Food;
@@ -343,7 +343,7 @@ namespace Bot1_Tests
         public void Exploration2()
         {
             GameState gameState = TestGameState(7, 10);
-            DistanceField dut = new DistanceField(gameState, tile => tile.terrain == GameState.Terrain.Unknown);
+            DistanceField<GameState.Tile> dut = new DistanceField<GameState.Tile>(gameState, gameState.map, tile => tile.terrain == GameState.Terrain.Unknown);
 
             const Tile u = Tile.Unseen;
             const Tile f = Tile.Food;
@@ -387,7 +387,7 @@ namespace Bot1_Tests
         public void Exploration3()
         {
             GameState gameState = TestGameState(7, 10);
-            DistanceField dut = new DistanceField(gameState, tile => tile.terrain == GameState.Terrain.Unknown);
+            DistanceField<GameState.Tile> dut = new DistanceField<GameState.Tile>(gameState, gameState.map, tile => tile.terrain == GameState.Terrain.Unknown);
 
             const Tile u = Tile.Unseen;
             const Tile f = Tile.Food;
@@ -483,7 +483,7 @@ namespace Bot1_Tests
         public void PartialPropagation()
         {
             GameState gameState = TestGameState(5, 5);
-            DistanceField dut = new DistanceField(gameState, tile => tile.isFood);
+            DistanceField<GameState.Tile> dut = new DistanceField<GameState.Tile>(gameState, gameState.map, tile => tile.isFood);
 
             const Tile f = Tile.Food;
             const Tile _ = Tile.Land;
@@ -505,16 +505,16 @@ namespace Bot1_Tests
             Assert.AreEqual(0, dut.GetDistance(2, 2));
 
             Assert.AreEqual(1, dut.GetDistance(3, 2));
-            Assert.AreEqual(DistanceField.Max, dut.GetDistance(4, 2));
+            Assert.AreEqual(DistanceField<GameState.Tile>.Max, dut.GetDistance(4, 2));
 
             Assert.AreEqual(1, dut.GetDistance(2, 3));
-            Assert.AreEqual(DistanceField.Max, dut.GetDistance(2, 4));
+            Assert.AreEqual(DistanceField<GameState.Tile>.Max, dut.GetDistance(2, 4));
 
             Assert.AreEqual(1, dut.GetDistance(2, 1));
-            Assert.AreEqual(DistanceField.Max, dut.GetDistance(2, 0));
+            Assert.AreEqual(DistanceField<GameState.Tile>.Max, dut.GetDistance(2, 0));
 
             Assert.AreEqual(1, dut.GetDistance(1, 2));
-            Assert.AreEqual(DistanceField.Max, dut.GetDistance(0, 2));
+            Assert.AreEqual(DistanceField<GameState.Tile>.Max, dut.GetDistance(0, 2));
 
             dut.Propagate(1);
 
@@ -557,7 +557,7 @@ namespace Bot1_Tests
         public void ProblemCase1()
         {
             GameState gameState = TestGameState(7, 10);
-            DistanceField dut = new DistanceField(gameState, tile => tile.isFood);
+            DistanceField<GameState.Tile> dut = new DistanceField<GameState.Tile>(gameState, gameState.map, tile => tile.isFood);
 
             const Tile f = Tile.Food;
             const Tile _ = Tile.Land;
@@ -592,7 +592,7 @@ namespace Bot1_Tests
         public void ProblemCase2()
         {
             GameState gameState = TestGameState(7, 10);
-            DistanceField dut = new DistanceField(gameState, tile => tile.isFood);
+            DistanceField<GameState.Tile> dut = new DistanceField<GameState.Tile>(gameState, gameState.map, tile => tile.isFood);
 
             const Tile f = Tile.Food;
             const Tile _ = Tile.Land;
@@ -633,7 +633,7 @@ namespace Bot1_Tests
         public void ProblemCase3_AntHills()
         {
             GameState gameState = TestGameState(7, 10);
-            DistanceField dut = new DistanceField(gameState, tile => tile.isEnemyHill);
+            DistanceField<GameState.Tile> dut = new DistanceField<GameState.Tile>(gameState, gameState.map, tile => tile.isEnemyHill);
 
             const Tile f = Tile.Food;
             const Tile _ = Tile.Land;
@@ -708,7 +708,7 @@ namespace Bot1_Tests
         public void TestWrap1x()
         {
             GameState gameState = TestGameState(5, 7);
-            DistanceField dut = new DistanceField(gameState, tile => tile.isFood);
+            DistanceField<GameState.Tile> dut = new DistanceField<GameState.Tile>(gameState, gameState.map, tile => tile.isFood);
             Vector2i result = dut.Wrap(new Vector2i(2, 3));
             Assert.AreEqual(2, result.x);
             Assert.AreEqual(3, result.y);
@@ -718,7 +718,7 @@ namespace Bot1_Tests
         public void TestWrap2x()
         {
             GameState gameState = TestGameState(5, 7);
-            DistanceField dut = new DistanceField(gameState, tile => tile.isFood);
+            DistanceField<GameState.Tile> dut = new DistanceField<GameState.Tile>(gameState, gameState.map, tile => tile.isFood);
             Vector2i result = dut.Wrap(new Vector2i(5, 3));
             Assert.AreEqual(0, result.x);
             Assert.AreEqual(3, result.y);
@@ -728,7 +728,7 @@ namespace Bot1_Tests
         public void TestWrap3x()
         {
             GameState gameState = TestGameState(5, 7);
-            DistanceField dut = new DistanceField(gameState, tile => tile.isFood);
+            DistanceField<GameState.Tile> dut = new DistanceField<GameState.Tile>(gameState, gameState.map, tile => tile.isFood);
             Vector2i result = dut.Wrap(new Vector2i(-1, 3));
             Assert.AreEqual(4, result.x);
             Assert.AreEqual(3, result.y);
@@ -738,7 +738,7 @@ namespace Bot1_Tests
         public void TestWrap4x()
         {
             GameState gameState = TestGameState(5, 7);
-            DistanceField dut = new DistanceField(gameState, tile => tile.isFood);
+            DistanceField<GameState.Tile> dut = new DistanceField<GameState.Tile>(gameState, gameState.map, tile => tile.isFood);
             Vector2i result = dut.Wrap(new Vector2i(0, 3));
             Assert.AreEqual(0, result.x);
             Assert.AreEqual(3, result.y);
@@ -748,7 +748,7 @@ namespace Bot1_Tests
         public void TestWrap5x()
         {
             GameState gameState = TestGameState(5, 7);
-            DistanceField dut = new DistanceField(gameState, tile => tile.isFood);
+            DistanceField<GameState.Tile> dut = new DistanceField<GameState.Tile>(gameState, gameState.map, tile => tile.isFood);
             Vector2i result = dut.Wrap(new Vector2i(4, 3));
             Assert.AreEqual(4, result.x);
             Assert.AreEqual(3, result.y);
@@ -758,7 +758,7 @@ namespace Bot1_Tests
         public void TestWrap1y()
         {
             GameState gameState = TestGameState(5, 7);
-            DistanceField dut = new DistanceField(gameState, tile => tile.isFood);
+            DistanceField<GameState.Tile> dut = new DistanceField<GameState.Tile>(gameState, gameState.map, tile => tile.isFood);
             Vector2i result = dut.Wrap(new Vector2i(2, 3));
             Assert.AreEqual(2, result.x);
             Assert.AreEqual(3, result.y);
@@ -768,7 +768,7 @@ namespace Bot1_Tests
         public void TestWrap2y()
         {
             GameState gameState = TestGameState(5, 7);
-            DistanceField dut = new DistanceField(gameState, tile => tile.isFood);
+            DistanceField<GameState.Tile> dut = new DistanceField<GameState.Tile>(gameState, gameState.map, tile => tile.isFood);
             Vector2i result = dut.Wrap(new Vector2i(2, 7));
             Assert.AreEqual(2, result.x);
             Assert.AreEqual(0, result.y);
@@ -778,7 +778,7 @@ namespace Bot1_Tests
         public void TestWrap3y()
         {
             GameState gameState = TestGameState(5, 7);
-            DistanceField dut = new DistanceField(gameState, tile => tile.isFood);
+            DistanceField<GameState.Tile> dut = new DistanceField<GameState.Tile>(gameState, gameState.map, tile => tile.isFood);
             Vector2i result = dut.Wrap(new Vector2i(2, -1));
             Assert.AreEqual(2, result.x);
             Assert.AreEqual(6, result.y);
@@ -788,7 +788,7 @@ namespace Bot1_Tests
         public void TestWrap4y()
         {
             GameState gameState = TestGameState(5, 7);
-            DistanceField dut = new DistanceField(gameState, tile => tile.isFood);
+            DistanceField<GameState.Tile> dut = new DistanceField<GameState.Tile>(gameState, gameState.map, tile => tile.isFood);
             Vector2i result = dut.Wrap(new Vector2i(2, 0));
             Assert.AreEqual(2, result.x);
             Assert.AreEqual(0, result.y);
@@ -798,7 +798,7 @@ namespace Bot1_Tests
         public void TestWrap5y()
         {
             GameState gameState = TestGameState(5, 7);
-            DistanceField dut = new DistanceField(gameState, tile => tile.isFood);
+            DistanceField<GameState.Tile> dut = new DistanceField<GameState.Tile>(gameState, gameState.map, tile => tile.isFood);
             Vector2i result = dut.Wrap(new Vector2i(2, 6));
             Assert.AreEqual(2, result.x);
             Assert.AreEqual(6, result.y);

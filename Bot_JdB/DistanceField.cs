@@ -6,7 +6,7 @@ using StateTile = Ants.Tile;
 
 namespace Ants
 {
-    public class DistanceField
+    public class DistanceField<T>
     {
         public const int Max = int.MaxValue-5;
         private struct Tile
@@ -27,10 +27,11 @@ namespace Ants
         private Vector2i dims;
         
         private GameState gameState;
-        System.Func<GameState.Tile, bool> marker;
+        private T[,] tiles;
+        System.Func<T, bool> marker;
 
 
-        public DistanceField(GameState gameState, System.Func<GameState.Tile, bool> marker)
+        public DistanceField(GameState gameState, T[,] tiles, System.Func<T, bool> marker)
         {
             width = gameState.Width;
             height = gameState.Height;
@@ -38,6 +39,7 @@ namespace Ants
 
             this.marker = marker;
             this.gameState = gameState;
+            this.tiles = tiles;
 
             map = new Tile[width, height];
             scratch = new Tile[width, height];
@@ -99,7 +101,7 @@ namespace Ants
                 int x = coord.x;
                 int y = coord.y;
 
-                bool locked = marker(gameState.map[coord.x, coord.y]);
+                bool locked = marker(tiles[coord.x, coord.y]);
 
                 map[x, y].isLocked = locked;
 
