@@ -58,8 +58,13 @@ namespace Ants {
 
                 foreach (Ant ant in state.MyAnts)
                 {
+
                     if (ant.hasMoved)
-                        occupied[ant.position.x, ant.position.y] = true;
+                    {
+                        Vector2i p = ant.position + Vector2i.AllDirections[(int)ant.direction];
+                        p = Vector2i.Wrap(p, state.Width, state.Height);
+                        occupied[p.x, p.y] = true;
+                    }
                 }
                 
 
@@ -74,7 +79,7 @@ namespace Ants {
                     
                     if (food.GetDistance(x, y) < 10)
                         MoveAnt(ant, food.GetDescent(x, y));
-                    else if (enemy.GetDistance(x, y) < DistanceField.Max)
+                    else if (enemy.GetDistance(x, y) < 20)
                         MoveAnt(ant, enemy.GetDescent(x, y));
                     else
                         MoveAnt(ant, exploration.GetDescent(x, y));

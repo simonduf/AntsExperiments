@@ -40,7 +40,7 @@ namespace Bot1_Tests
             dut.MoveOffensive(state);
 
             Assert.IsTrue(state.MyAnts[0].hasMoved);
-            Assert.AreEqual(Direction.North, state.MyAnts[0].direction);
+            Assert.AreEqual(Direction.South, state.MyAnts[0].direction);
         }
 
         [TestMethod]
@@ -67,7 +67,7 @@ namespace Bot1_Tests
             dut.MoveOffensive(state);
 
             Assert.IsTrue(state.MyAnts[0].hasMoved);
-            Assert.AreEqual(Direction.West, state.MyAnts[0].direction);
+            Assert.AreEqual(Direction.East, state.MyAnts[0].direction);
         }
 
         [TestMethod]
@@ -94,7 +94,7 @@ namespace Bot1_Tests
             dut.MoveOffensive(state);
 
             Assert.IsTrue(state.MyAnts[0].hasMoved);
-            Assert.AreEqual(Direction.South, state.MyAnts[0].direction);
+            Assert.AreEqual(Direction.North, state.MyAnts[0].direction);
         }
 
         [TestMethod]
@@ -121,7 +121,7 @@ namespace Bot1_Tests
             dut.MoveOffensive(state);
 
             Assert.IsTrue(state.MyAnts[0].hasMoved);
-            Assert.AreEqual(Direction.East, state.MyAnts[0].direction);
+            Assert.AreEqual(Direction.West, state.MyAnts[0].direction);
         }
 
         [TestMethod]
@@ -148,7 +148,7 @@ namespace Bot1_Tests
             dut.MoveOffensive(state);
 
             Assert.IsTrue(state.MyAnts[0].hasMoved);
-            Assert.AreEqual(Direction.East, state.MyAnts[0].direction);
+            Assert.AreEqual(Direction.West, state.MyAnts[0].direction);
         }
 
 
@@ -176,7 +176,7 @@ namespace Bot1_Tests
             dut.MoveOffensive(state);
 
             Assert.IsTrue(state.MyAnts[0].hasMoved);
-            Assert.AreEqual(Direction.South, state.MyAnts[0].direction);
+            Assert.AreEqual(Direction.North, state.MyAnts[0].direction);
         }
 
 
@@ -204,7 +204,7 @@ namespace Bot1_Tests
             dut.MoveOffensive(state);
 
             Assert.IsTrue(state.MyAnts[0].hasMoved);
-            Assert.AreEqual(Direction.West, state.MyAnts[0].direction);
+            Assert.AreEqual(Direction.South, state.MyAnts[0].direction);
         }
 
         [TestMethod]
@@ -231,7 +231,7 @@ namespace Bot1_Tests
             dut.MoveOffensive(state);
 
             Assert.IsTrue(state.MyAnts[0].hasMoved);
-            Assert.AreEqual(Direction.East, state.MyAnts[0].direction);
+            Assert.AreEqual(Direction.South, state.MyAnts[0].direction);
         }
 
 
@@ -299,10 +299,10 @@ namespace Bot1_Tests
             {
                 {_,_,_,_,_,_,_,_,_,_},
                 {_,_,_,_,_,_,_,_,_,_},
-                {_,_,_,_,_,_,_,_,_,_},
+                {_,_,_,_,_,a,_,_,_,_},
+                {_,_,a,a,a,a,a,_,_,_},
                 {_,_,a,a,_,_,_,_,_,_},
-                {_,_,_,_,_,_,_,_,_,_},
-                {_,_,_,_,_,A,_,_,_,_},
+                {_,_,a,a,_,A,_,_,_,_},
                 {_,_,_,_,_,_,_,_,_,_},
                 {_,_,_,_,_,_,_,_,_,_},
                 {_,_,_,_,_,_,_,_,_,_},
@@ -313,8 +313,23 @@ namespace Bot1_Tests
 
             dut.MoveOffensive(state);
 
-            Assert.IsTrue(state.MyAnts[0].hasMoved);
-            Assert.IsTrue(state.MyAnts[1].hasMoved);
+
+            foreach (Ant a in state.MyAnts)
+                Assert.IsTrue(a.hasMoved);
+
+
+            for (int i = 0; i < state.MyAnts.Count; i++)
+            {
+                Ant a = state.MyAnts[i];
+                Vector2i aPos = a.position + Vector2i.AllDirections[(int)a.direction];
+                for(int j = 0; j < i; j++)
+                {
+                    Ant b = state.MyAnts[j];
+                    Vector2i bPos = b.position + Vector2i.AllDirections[(int)b.direction];
+
+                    Assert.AreNotEqual(aPos, bPos);
+                }
+            }
         }
 
 

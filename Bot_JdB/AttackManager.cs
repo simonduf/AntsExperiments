@@ -141,8 +141,9 @@ namespace Ants
 
                 foreach(Direction direction in DirectionExtensions.AllDirections)
                 {
+                    graph.SetDirection(i, direction);
                     float engagement = graph.GetEngagement(i);
-                    if(engagement > maxEngagement)
+                    if(engagement > maxEngagement && IsPositionValid(i))
                     {
                         maxEngagement = engagement;
                         best = direction;
@@ -166,24 +167,11 @@ namespace Ants
                     //
                     //  Test for overlap
                     //
-                    Vector2i position = graph.GetProjectedPosition(i);
-                    bool available = true;
-                    for(int j = 0; j < ours.Count; j++)
-                    {
-                        if (j == i)
-                            continue;
-
-                        if(graph.GetProjectedPosition(j).Equals(position))
-                        {
-                            available = false;
-                            break;
-                        }
-                    }
-
-                    if (!available)
-                        continue;
-
                     graph.SetDirection(i, direction);
+
+                    if (!IsPositionValid(i))
+                        continue;
+                    
                     float value = graph.GetValue();
 
                     if(value > maxValue)
@@ -198,7 +186,25 @@ namespace Ants
             }
         }
 
+        private bool IsPositionValid(int id)
+        {
+            Vector2i position = graph.GetProjectedPosition(id);
+            bool available = true;
+            for (int j = 0; j < ours.Count; j++)
+            {
+                if (j == id)
+                    continue;
 
+                if (graph.GetProjectedPosition(j).Equals(position))
+                {
+                    available = false;
+                    break;
+                }
+            }
+            return available;
+        }
+
+        
 
     }
 }
