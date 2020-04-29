@@ -35,7 +35,7 @@ namespace Tests
                 Assert.NotNull(test(new Ant(16,16,0)));
                 Assert.NotNull(test(new Location(16,16)));
 
-                var result = MyBot.FindClosest(state, state.FoodTiles[0] ,test , out Direction dir);
+                var result = MyBot.FindClosest(state, state.FoodTiles[0] ,test );
                 Assert.NotNull(result);
 
 

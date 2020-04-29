@@ -3,7 +3,7 @@
 setlocal
 set toolsPath=%~dp0..\tools
 
-set bot1Path="""%~dp0bin\x64\Debug\Bot1.exe"""
+set bot1Path="""%~dp0bin\x64\Debug\Bot_SD1.exe"""
 set bot2Path="python ""%toolsPath%\sample_bots\python\LeftyBot.py"""
 set bot3Path="python ""%toolsPath%\sample_bots\python\HunterBot.py"""
 set bot4Path="python ""%toolsPath%\sample_bots\python\RandomBot.py"""
