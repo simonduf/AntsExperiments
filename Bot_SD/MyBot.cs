@@ -22,7 +22,8 @@ namespace Ants {
                 //Calculate proximity
                 //var FoodProximity = calculateFoodProximity(state);
                 var visibility = calculateVisibilityProximity(state);
-                var enemyProximity = CalculateProximity(state, state.EnemyAnts, 200);
+
+                var enemyProximity = CalculateProximity(state, state.EnemyHills.Union<TeamLocation>(state.EnemyAnts).ToList(), 200);
 
 
                 var antMoved = new List<Ant>();
@@ -38,7 +39,7 @@ namespace Ants {
                     if (Math.Sqrt(state.ViewRadius2) - visibility.At(enemy) < BattleRadius)
                     {
                         var battle = new Battle();
-                        battle.StartBattle(state, state.MyAnts.OrderBy(a => state.GetDistance(enemy, a)).First(), enemy, enemyProximity);
+                        battle.StartBattle(state, state.MyAnts.Except(antMoved).OrderBy(a => state.GetDistance(enemy, a)).First(), enemy, enemyProximity);
 
                         ennemyConsidered.AddRange(battle.EnemyPlatoon);
                         antMoved.AddRange(battle.AllyPlatoon);
@@ -52,18 +53,19 @@ namespace Ants {
                 { //Food.getAnt
                     var antLookingForFood = state.MyAnts.Except(antMoved).ToList();
                     var antGatheringFood = new Dictionary<Ant, TargetWithDir<Ant>>();
-                    var foodqueue = new Queue<Location>(state.FoodTiles);
+                    var foodqueue = new Queue<Location>(state.FoodTiles.Union(state.EnemyHills));
 
                     while ( foodqueue.Count>0 )
                     {
                         var food = foodqueue.Dequeue();
                         var result = FindClosest(state, food, x => antLookingForFood.Select(ant => (x.Row == ant.Row && x.Col == ant.Col) ? ant : null).Where(y => y != null).FirstOrDefault() );
-
+                        Log.Trace("Food.GetAnt : Food{0} => Ant {1}", food, result?.Target);
                         if (result != null)
                         {
 
                             if (antGatheringFood.ContainsKey(result.Target))
                             {
+                                Log.Trace("Food.GetAnt : ANT already selected  at Food{0} => Ant {1}", antGatheringFood[result.Target].Source, result.Target);
                                 if (antGatheringFood[result.Target].Dist > result.Dist)
                                     foodqueue.Enqueue(antGatheringFood[result.Target].Source);
                                 else
@@ -89,7 +91,7 @@ namespace Ants {
                         Location newLoc = state.GetDestination(result.Target, dir);
 
                         if (!state.OccupiedNextRound.At(newLoc))
-                            IssueOrder(state, result.Target, dir);
+                            IssueOrder(state, result.Target, dir, "GetFood");
                     }
 
                     antMoved.AddRange(antGatheringFood.Keys);
@@ -112,8 +114,9 @@ namespace Ants {
                     //    continue;
 
 
-                    explore(state, visibility, ant);
-
+                    if (explore(state, visibility, ant))
+                        continue;
+                    
                     goToFront(state, enemyProximity, ant);
 
                 }
@@ -230,9 +233,11 @@ namespace Ants {
                     T result = test(newLoc);
                     if (result != null)
                     {
-
                         return new TargetWithDir<T>(result, direction, distance[item] + 1, startingPoint );
                     }
+
+                    if (distance[item] +1 >= MaxDistance)
+                        continue;
 
                     distance[newLoc] = distance[item] + 1;
                     queue.Enqueue(newLoc);
@@ -267,7 +272,7 @@ namespace Ants {
 
                 }
 
-                IssueOrder(state, ant, dir);
+                IssueOrder(state, ant, dir, "GetFoodOld");
                 return true;
             }
 
@@ -290,13 +295,13 @@ namespace Ants {
             }
             if (value != visibility.At(ant))
             {
-                IssueOrder(state, ant, dir);
+                IssueOrder(state, ant, dir, "Go To Front");
                 return true;
             }
             return false;
         }
 
-        int unknownExplorationDistance = 80;
+        int unknownExplorationDistance = 15;
         private bool explore(GameState state, int[,] visibility, Ant ant)
         {
 
@@ -320,7 +325,7 @@ namespace Ants {
                     }
                     if (value != visibility.At(ant))
                     {
-                        IssueOrder(state, ant, dir);
+                        IssueOrder(state, ant, dir, "Explore");
                         return true;
                     }
                 }
@@ -380,6 +385,7 @@ namespace Ants {
 
     public class Battle
     {
+        static int battleidcounter = 0;
         const int platoonRadius = 4;
         const int platoonMaxTotalRadius = 10;
         const int GuardDistance = 2;
@@ -387,6 +393,12 @@ namespace Ants {
         public List<Ant> AllyPlatoon = new List<Ant>();
         public List<Ant> EnemyPlatoon = new List<Ant>();
         private int[,] enemyProximity;
+        private int battleId;
+
+        public Battle()
+        {
+            this.battleId = ++battleidcounter;
+        }
 
         public static void BuildPlatoon(IGameState state, List<Ant> platoonToFill, Ant startingAnt)
         {
@@ -504,7 +516,7 @@ namespace Ants {
                 return;
 
             if ( EnemyDist.At(best.loc) >= EnemyDist.At(ant))
-                Bot.IssueOrder(state, ant, best.dir);
+                Bot.IssueOrder(state, ant, best.dir,"Retreat" + battleId);
 
 
             //foreach (Direction direction in Ants.Aim.Keys)
@@ -533,7 +545,7 @@ namespace Ants {
                 return;//TODO wals around obstacle here??
 
             if (EnemyDist.At(best.loc) <= EnemyDist.At(ant))
-                Bot.IssueOrder(state, ant, best.dir);
+                Bot.IssueOrder(state, ant, best.dir, "Attack" + battleId);
 
 
             //foreach (Direction direction in Ants.Aim.Keys)
