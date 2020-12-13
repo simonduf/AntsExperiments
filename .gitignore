@@ -2,6 +2,6 @@ tools/
 Tournament/game_logs
 .DS_Store
 text*.txt
-game_logs/
+CoreFramework/game_logs/
 *.cmd
 
