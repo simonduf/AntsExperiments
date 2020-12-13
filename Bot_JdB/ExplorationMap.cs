@@ -7,35 +7,92 @@ namespace Ants
 {
     public class ExplorationMap
     {
-        public int[,] map;
+        private readonly int visitDelay;
+
+        public struct Tile
+        {
+            public int timeSinceVisit;
+            public bool isCritical;
+            public bool needsVisit;
+        }
+
+        public struct Configuration
+        {
+            public int width;
+            public int height;
+            public int visitDelay;
+            public int noCriticalStartup;
+            public System.Func<Vector2i, bool> visibilityCheck;
+        }
+
+        public Tile[,] map;
         List<Vector2i> coords;
 
-        public ExplorationMap(int width, int height)
+        private int width;
+        private int height;
+        private int enableCritical;
+        private System.Func<Vector2i, bool> isVisible;
+
+        public ExplorationMap(Configuration config)
         {
-            map = new int[width, height];
+            width = config.width;
+            height = config.height;
+            visitDelay = config.visitDelay;
+            enableCritical = -config.noCriticalStartup;
+            isVisible = config.visibilityCheck;
+
+            map = new Tile[width, height];
             coords = Vector2i.GenerateCoords(Vector2i.Zero, new Vector2i(width, height));
 
+            Tile defaultTile;
+            defaultTile.isCritical = false;
+            defaultTile.needsVisit = false;
+            defaultTile.timeSinceVisit = int.MaxValue;
+
             foreach (var c in coords)
-                map[c.x, c.y] = int.MaxValue;
+                map[c.x, c.y] = defaultTile;
 
         }
 
-        public void Increment()
+        public void Update()
         {
-            foreach(var c in coords)
+            enableCritical++;
+            foreach (var c in coords)
             {
-                if (map[c.x, c.y] < int.MaxValue)
-                    map[c.x, c.y]++;
-            }
-        }
+                Tile tile = map[c.x, c.y];
 
-        public void ZeroOutVisible(System.Func<Vector2i, bool> isVisible)
-        {
-            foreach(var c in coords)
-            {
                 if (isVisible(c))
-                    map[c.x, c.y] = 0;
+                {
+                    tile.timeSinceVisit = 0;
+                    tile.needsVisit = false;
+                }
+                else
+                {
+                    if(tile.timeSinceVisit < int.MaxValue)
+                        tile.timeSinceVisit++;
+
+                    if (tile.timeSinceVisit > visitDelay || (tile.isCritical && enableCritical > 0))
+                        tile.needsVisit = true;
+
+                }
+
+                map[c.x, c.y] = tile;
             }
+        }
+
+        
+
+        public void SetCriticalZone(Vector2i center, int radius2)
+        {
+            List<Vector2i> circle = Vector2i.GenerateCircle(radius2)
+                                            .Select(v => Vector2i.Wrap(v + center, width, height))
+                                            .ToList();
+
+            foreach(Vector2i c in circle)
+                map[c.x, c.y].isCritical = true;
+
+
+
         }
     }
 }

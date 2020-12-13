@@ -42,6 +42,7 @@ namespace Ants {
 
 		public struct Tile
 		{
+			public Vector2i position;
 			public Terrain terrain;
 			public bool isEnemyAnt;
 			public bool isEnemyHill;
@@ -86,8 +87,6 @@ namespace Ants {
 		                  int turntime, int loadtime, 
 		                  int viewradius2, int attackradius2, int spawnradius2) {
 
-			Log.Debug(attackradius2);
-
 			Width = width;
 			Height = height;
 			
@@ -111,7 +110,10 @@ namespace Ants {
 			coords = Vector2i.GenerateCoords(Vector2i.Zero, new Vector2i(width, height));
 
 			foreach (var coord in coords)
+			{
 				map[coord.x, coord.y] = defaultTile;
+				map[coord.x, coord.y].position = coord;
+			}
 
 		}
 

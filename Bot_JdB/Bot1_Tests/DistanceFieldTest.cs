@@ -34,7 +34,7 @@ namespace Bot1_Tests
             gameState.Set(map);
             
 
-            dut.Propagate(5);
+            dut.Propagate();
 
             Assert.AreEqual(0, dut.GetDistance(2, 2));
             
@@ -69,7 +69,7 @@ namespace Bot1_Tests
                 {_,_,_,_,_},
                 {_,_,_,_,_}
             });
-            dut.Propagate(5);
+            dut.Propagate();
 
             gameState.Set(new Tile[,]
             {
@@ -79,7 +79,7 @@ namespace Bot1_Tests
                 {_,_,_,_,_},
                 {_,_,_,_,_}
             });
-            dut.Propagate(1);
+            dut.Propagate();
 
             
 
@@ -113,7 +113,7 @@ namespace Bot1_Tests
 
             gameState.Set(map);
 
-            dut.Propagate(10);
+            dut.Propagate();
 
             Assert.AreEqual(0, dut.GetDistance(2, 2));
 
@@ -151,7 +151,7 @@ namespace Bot1_Tests
                 {_,_,_,_,_,_,_}
             };
             gameState.Set(map);
-            dut.Propagate(20);
+            dut.Propagate();
 
             Assert.AreEqual(0, dut.GetDistance(0, 0));
             Assert.AreEqual(1, dut.GetDistance(0, 1));
@@ -181,7 +181,7 @@ namespace Bot1_Tests
             };
 
             gameState.Set(map);
-            dut.Propagate(20);
+            dut.Propagate();
 
             Assert.AreEqual(0, dut.GetDistance(2, 2));
             Assert.AreEqual(1, dut.GetDistance(2, 1));
@@ -211,7 +211,7 @@ namespace Bot1_Tests
             };
 
             gameState.Set(map);
-            dut.Propagate(20);
+            dut.Propagate();
 
             {
                 Vector2i r = dut.GetDescent(6, 4).First();
@@ -272,7 +272,7 @@ namespace Bot1_Tests
             };
 
             gameState.Set(map);
-            dut.Propagate(20);
+            dut.Propagate();
 
             {
                 Vector2i r = dut.GetAscent(6, 4).First();
@@ -328,7 +328,7 @@ namespace Bot1_Tests
             };
 
             gameState.Set(map);
-            dut.Propagate(20);
+            dut.Propagate();
 
             {
                 Assert.AreEqual(0, dut.GetDistance(4, 7));
@@ -365,7 +365,7 @@ namespace Bot1_Tests
             };
 
             gameState.Set(map);
-            dut.Propagate(20);
+            dut.Propagate();
 
             {
                 Assert.AreEqual(5, dut.GetDistance(1, 1));
@@ -410,7 +410,7 @@ namespace Bot1_Tests
                 {u,u,u,u,u,u,u},
                 {u,u,u,u,u,u,u}
             });
-            dut.Propagate(20);
+            dut.Propagate();
             {
                 Assert.AreEqual(0, dut.GetDistance(3, 2));
                 Assert.AreEqual(1, dut.GetDistance(3, 3));
@@ -432,7 +432,7 @@ namespace Bot1_Tests
                 {u,u,u,u,u,u,u},
                 {u,u,u,u,u,u,u}
             });
-            dut.Propagate(20);
+            dut.Propagate();
             {
                 Assert.AreEqual(0, dut.GetDistance(3, 1));
                 Assert.AreEqual(1, dut.GetDistance(3, 2));
@@ -461,7 +461,7 @@ namespace Bot1_Tests
                 {u,u,u,u,u,u,u},
                 {u,u,u,u,u,u,u}
             });
-            dut.Propagate(20);
+            dut.Propagate();
             {
                 Assert.AreEqual(0, dut.GetDistance(3, 0));
                 Assert.AreEqual(1, dut.GetDistance(3, 1));
@@ -478,80 +478,6 @@ namespace Bot1_Tests
 
         }
 
-
-        [TestMethod]
-        public void PartialPropagation()
-        {
-            GameState gameState = TestGameState(5, 5);
-            DistanceField<GameState.Tile> dut = new DistanceField<GameState.Tile>(gameState, gameState.map, tile => tile.isFood);
-
-            const Tile f = Tile.Food;
-            const Tile _ = Tile.Land;
-
-            Tile[,] map = new Tile[,]
-            {
-                {_,_,_,_,_},
-                {_,_,_,_,_},
-                {_,_,f,_,_},
-                {_,_,_,_,_},
-                {_,_,_,_,_}
-            };
-
-            gameState.Set(map);
-
-
-            dut.Propagate(1);
-
-            Assert.AreEqual(0, dut.GetDistance(2, 2));
-
-            Assert.AreEqual(1, dut.GetDistance(3, 2));
-            Assert.AreEqual(DistanceField<GameState.Tile>.Max, dut.GetDistance(4, 2));
-
-            Assert.AreEqual(1, dut.GetDistance(2, 3));
-            Assert.AreEqual(DistanceField<GameState.Tile>.Max, dut.GetDistance(2, 4));
-
-            Assert.AreEqual(1, dut.GetDistance(2, 1));
-            Assert.AreEqual(DistanceField<GameState.Tile>.Max, dut.GetDistance(2, 0));
-
-            Assert.AreEqual(1, dut.GetDistance(1, 2));
-            Assert.AreEqual(DistanceField<GameState.Tile>.Max, dut.GetDistance(0, 2));
-
-            dut.Propagate(1);
-
-            Assert.AreEqual(0, dut.GetDistance(2, 2));
-
-            Assert.AreEqual(1, dut.GetDistance(3, 2));
-            Assert.AreEqual(2, dut.GetDistance(4, 2));
-
-            Assert.AreEqual(1, dut.GetDistance(2, 3));
-            Assert.AreEqual(2, dut.GetDistance(2, 4));
-
-            Assert.AreEqual(1, dut.GetDistance(2, 1));
-            Assert.AreEqual(2, dut.GetDistance(2, 0));
-
-            Assert.AreEqual(1, dut.GetDistance(1, 2));
-            Assert.AreEqual(2, dut.GetDistance(0, 2));
-
-            dut.Propagate(1);
-
-            Assert.AreEqual(0, dut.GetDistance(2, 2));
-
-            Assert.AreEqual(1, dut.GetDistance(3, 2));
-            Assert.AreEqual(2, dut.GetDistance(4, 2));
-            Assert.AreEqual(3, dut.GetDistance(4, 3));
-
-            Assert.AreEqual(1, dut.GetDistance(2, 3));
-            Assert.AreEqual(2, dut.GetDistance(2, 4));
-            Assert.AreEqual(3, dut.GetDistance(3, 4));
-
-            Assert.AreEqual(1, dut.GetDistance(2, 1));
-            Assert.AreEqual(2, dut.GetDistance(2, 0));
-            Assert.AreEqual(3, dut.GetDistance(3, 0));
-
-            Assert.AreEqual(1, dut.GetDistance(1, 2));
-            Assert.AreEqual(2, dut.GetDistance(0, 2));
-            Assert.AreEqual(3, dut.GetDistance(0, 3));
-        }
 
         [TestMethod]
         public void ProblemCase1()
@@ -579,7 +505,7 @@ namespace Bot1_Tests
             };
 
             gameState.Set(map);
-            dut.Propagate(20);
+            dut.Propagate();
 
             {
                 Vector2i r = dut.GetDescent(3, 6).First();
@@ -614,7 +540,7 @@ namespace Bot1_Tests
             };
 
             gameState.Set(map);
-            dut.Propagate(20);
+            dut.Propagate();
 
             {
                 Vector2i r = dut.GetDescent(2, 5).First();
@@ -655,7 +581,7 @@ namespace Bot1_Tests
                 {w,w,w,w,w,w,w},
             });
 
-            dut.Propagate(20);
+            dut.Propagate();
 
             Assert.AreEqual(1, dut.GetDistance(3, 2));
 
@@ -687,7 +613,7 @@ namespace Bot1_Tests
                 {w,w,w,w,w,w,w},
             });
 
-            dut.Propagate(20);
+            dut.Propagate();
 
             Assert.AreEqual(1, dut.GetDistance(3, 2));
 

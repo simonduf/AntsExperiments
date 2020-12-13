@@ -14,14 +14,14 @@ namespace Ants
             public int distance;
             public bool isLand;
             public bool isLocked;
+            public bool isUpdated;
         }
 
 
-        
+        private Queue<Vector2i> updateQueue = new Queue<Vector2i>();
 
         private Vector2i[] coords;
         private Tile[,] map;
-        private Tile[,] scratch;
         private int width;
         private int height;
         private Vector2i dims;
@@ -42,7 +42,6 @@ namespace Ants
             this.tiles = tiles;
 
             map = new Tile[width, height];
-            scratch = new Tile[width, height];
 
             coords = new Vector2i[width * height];
             for(int j = 0; j < height; j++)
@@ -104,10 +103,12 @@ namespace Ants
                 bool locked = marker(tiles[coord.x, coord.y]);
 
                 map[x, y].isLocked = locked;
+                map[x, y].isUpdated = false;
 
                 if (locked)
                 {
                     map[x, y].distance = 0;
+                    updateQueue.Enqueue(coord);
                     count++;
                 }
 
@@ -120,47 +121,60 @@ namespace Ants
             }
         }
 
-        public void PropagateOnce()
+        public void UpdateDistances()
         {
-            foreach(var coord in coords)
+
+            while(updateQueue.Count > 0)
             {
-                Tile tile = map[coord.x, coord.y];
+                Vector2i c = updateQueue.Dequeue();
 
-                scratch[coord.x, coord.y] = tile;
+                Tile tile = map[c.x, c.y];
 
-                if (!tile.isLocked && tile.isLand)
+                if (tile.isUpdated)
+                    continue;
+
+                if (!tile.isLand)
+                    continue;
+
+                IEnumerable<Vector2i> adjacent = Vector2i.AllDirections
+                                    .Select(direction => Wrap(c + direction));
+
+
+                if (tile.isLocked)
                 {
+                    tile.distance = 0;
+                }
+                else
+                {
+                    int min = adjacent
+                                    .Select(sum => map[sum.x, sum.y])
+                                    .Where(t => t.isLand && t.isUpdated)
+                                    .Select(t => t.distance)
+                                    .Min();
 
-                    int min = Vector2i.AllDirections
-                                .Select(direction => Wrap(coord + direction))
-                                .Select(sum => map[sum.x, sum.y])
-                                .Where(t => t.isLand)
-                                .Select(t => t.distance)
-                                .Min();
+                    tile.distance = Math.Min(min + 1, Max);
+                    
 
-                    scratch[coord.x, coord.y].distance = Math.Min(min + 1, Max);
+                    
                 }
 
+
+                foreach (var a in adjacent)
+                    updateQueue.Enqueue(a);
+
+                tile.isUpdated = true;
+                map[c.x, c.y] = tile;
                 
-                
-                
+
             }
 
-
-            //
-            //  Flip our scratch pad and our map
-            //
-            Tile[,] tmp = map;
-            map = scratch;
-            scratch = tmp;
         }
 
-        public void Propagate(int count)
+        public void Propagate()
         {
             UpdateLand();
             UpdateLocked();
-            for (int i = 0; i < count; i++)
-                PropagateOnce();
+            UpdateDistances();
         }
 
 

@@ -13,7 +13,10 @@ namespace Ants {
         //
         //  Configuration
         //
-        private static int Reexploration = 50;
+        private static int Reexploration = 100;
+        private static int NoCriticalStartup = 100;
+        private static int CriticalRadius2 = 900;
+        private static int DefenseDistance = 20;
         private static int DistanceToNest = 20;
         private static int DistanceToFood = 10;
 
@@ -22,8 +25,11 @@ namespace Ants {
         private bool[,] occupied = null;
         private AttackManager attackManager;
 
-        private DistanceField<int> exploration = null;
+        private DistanceField<ExplorationMap.Tile> exploration = null;
         private ExplorationMap explorationMap;
+
+        private DistanceField<GameState.Tile> defense = null;
+
 
         int turn = 0;
 
@@ -37,7 +43,6 @@ namespace Ants {
         {
             width = state.Width;
             height = state.Height;
-
             
             food = new DistanceField<GameState.Tile>(state, state.map, tile => tile.isFood);
             enemy = new DistanceField<GameState.Tile>(state, state.map, tile => tile.isEnemyHill);
@@ -46,8 +51,20 @@ namespace Ants {
 
             attackManager = new AttackManager(state);
 
-            explorationMap = new ExplorationMap(state.Width, state.Height);
-            exploration = new DistanceField<int>(state, explorationMap.map, tile => tile > Reexploration);
+            {
+                ExplorationMap.Configuration config;
+
+                config.width = state.Width;
+                config.height = state.Height;
+                config.noCriticalStartup = NoCriticalStartup;
+                config.visibilityCheck = v => state.map[v.x, v.y].isVisible;
+                config.visitDelay = Reexploration;
+
+                explorationMap = new ExplorationMap(config);
+                exploration = new DistanceField<ExplorationMap.Tile>(state, explorationMap.map, tile => tile.needsVisit);
+            }
+
+            defense = new DistanceField<GameState.Tile>(state, state.map, IsDanger);
 
         }
 
@@ -56,12 +73,20 @@ namespace Ants {
         {
             turn++;
 
-            explorationMap.Increment();
-            explorationMap.ZeroOutVisible(v => state.map[v.x, v.y].isVisible);
+            if(turn <= 1)
+            {
+                foreach(var hill in state.MyHills)
+                    explorationMap.SetCriticalZone(new Vector2i(hill.Col, hill.Row), CriticalRadius2);
+            }
 
-            exploration.Propagate(2);
-            food.Propagate(2);
-            enemy.Propagate(2);
+            explorationMap.Update();
+            
+
+            exploration.Propagate();
+            food.Propagate();
+            enemy.Propagate();
+
+            defense.Propagate();
 
         }
 
@@ -72,6 +97,9 @@ namespace Ants {
             try
             {
                 Cook(state);
+
+                //Log.Debug(explorationMap.map[59,75].isCritical);
+                
 
                 attackManager.MoveOffensive(state);
 
@@ -97,9 +125,11 @@ namespace Ants {
                     int x = ant.position.x;
                     int y = ant.position.y;
 
-                    
+
                     if (food.GetDistance(x, y) < DistanceToFood)
                         MoveAnt(ant, food.GetDescent(x, y));
+                    else if (defense.GetDistance(x, y) < DefenseDistance)
+                        MoveAnt(ant, defense.GetDescent(x, y));
                     else if (enemy.GetDistance(x, y) < DistanceToNest)
                         MoveAnt(ant, enemy.GetDescent(x, y));
                     else
@@ -161,6 +191,12 @@ namespace Ants {
             {
                 return v.y > 0.0f ? Direction.South : Direction.North;
             }
+        }
+
+        private bool IsDanger(GameState.Tile tile)
+        {
+            Vector2i c = tile.position;
+            return tile.isEnemyAnt && explorationMap.map[c.x, c.y].isCritical;
         }
 
         public static void Print<T>(T[,] data, int x, int y, int width, int height, Func<T[,], int, int, String> formater)
