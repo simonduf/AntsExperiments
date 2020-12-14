@@ -2,6 +2,8 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using static Ants.Logger;
+using System.Diagnostics;
+using System.Threading;
 
 namespace Ants {
 
@@ -30,6 +32,12 @@ namespace Ants {
 
             Log.Debug("Starting Up");
 
+            //while (!Debugger.IsAttached)
+            //{
+            //    Thread.Sleep(100);
+            //}
+
+
             List<string> input = new List<string>();
 			
 			try {
@@ -53,12 +61,14 @@ namespace Ants {
 					}
 				}
 			} catch (Exception e) {
-				#if DEBUG
+#if DEBUG
+                Log.Fatal(e, "Fatal error ");
 					FileStream fs = new FileStream("debug.log", System.IO.FileMode.Create, System.IO.FileAccess.Write);
 					StreamWriter sw = new StreamWriter(fs);
 					sw.WriteLine(e);
 					sw.Close();
 					fs.Close();
+
 				#endif
 			}
 			

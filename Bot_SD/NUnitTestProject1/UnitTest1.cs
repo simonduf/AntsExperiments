@@ -35,7 +35,7 @@ namespace Tests
                 Assert.NotNull(test(new Ant(16,16,0)));
                 Assert.NotNull(test(new Location(16,16)));
 
-                var result = MyBot.FindClosest(state, state.FoodTiles[0] ,test , out Direction dir);
+                var result = MyBot.FindClosest(state, state.FoodTiles[0] ,test );
                 Assert.NotNull(result);
 
 
@@ -205,6 +205,48 @@ namespace Tests
                     Assert.Greater(finalDist[i], initDist[i]);
                 }
 
+            }
+        }
+
+        [Test]
+        public void TestFindClosest()
+        {
+            const int mapSize = 32;
+            var state = new GameState(mapSize, mapSize, int.MaxValue, 100, 25, 5, 1);
+
+            var start1 = new Location(16, 16);
+            var target1 = new  Location(16, 18);
+            var testCollection1 = new List<Location>();
+            testCollection1.Add(target1);
+            var testCollection2 =new[] {
+                new Location(1, 1),
+                new Location(mapSize, mapSize),
+                new Location(mapSize, 1),
+                new Location(1, mapSize),
+                target1,
+            }.ToList();
+
+
+
+            var tests = new[] {
+                new { start =start1, target = target1, dist = 20, resultIsNull=false , set=testCollection1},
+                new { start =start1, target = target1, dist = 1, resultIsNull=true,  set=testCollection1},
+                new { start =start1, target = target1, dist = 20, resultIsNull=false,  set=testCollection2},
+            };
+
+            foreach (var test in tests)
+            {
+                var result = MyBot.FindClosest(state, test.start, x => test.set.Contains(x) ? test.set[test.set.IndexOf(x)]: null , test.dist);
+
+                if (test.resultIsNull)
+                {
+                    Assert.IsNull(result);
+                }
+                else
+                {
+                    Assert.NotNull(result);
+                    Assert.AreEqual(test.target, result.Target);
+                }
             }
         }
 
