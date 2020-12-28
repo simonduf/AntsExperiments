@@ -4,4 +4,4 @@ Tournament/game_logs
 text*.txt
 CoreFramework/game_logs/
 *.cmd
-
+*.log

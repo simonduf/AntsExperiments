@@ -98,9 +98,6 @@ namespace Ants {
             {
                 Cook(state);
 
-                //Log.Debug(explorationMap.map[59,75].isCritical);
-                
-
                 attackManager.MoveOffensive(state);
 
                 ClearOccupied();
